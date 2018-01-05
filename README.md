@@ -3,9 +3,23 @@ Demo web app using the Google Cloud Speech API in streaming mode.
 
 You need a GCP project, with the Speech API enabled.
 
+```bash
+export MY_PROJECT_NAME=marcus-is-testing
+gcloud projects create $MY_PROJECT_NAME
+gcloud config set project $MY_PROJECT_NAME
+```
+
 If deployed locally, you also need a service account key wired up in Application Default Credentials.
 
-1. npm install
-2. browserify index.js -o public/bundle.js
-3. npm start
-4. open http://localhost:3000
+```bash
+gcloud iam service-accounts create streaming-speech-demo --display-name "streaming-speech-demo"
+gcloud iam service-accounts keys create svc-acc-key.json --iam-account=streaming-speech-demo@$MY_PROJECT_NAME.iam.gserviceaccount.com
+export GOOGLE_APPLICATION_CREDENTIALS=svc-acc-key.json
+```
+
+Once all set, do:
+
+1. `npm install`
+2. `browserify index.js -o public/bundle.js`
+3. `npm start`
+4. `open http://localhost:3000`
