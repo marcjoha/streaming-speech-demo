@@ -2,13 +2,14 @@ var io = require('socket.io-client');
 var ss = require('socket.io-stream');
 var getUserMedia = require('get-user-media-promise');
 var MicrophoneStream = require('microphone-stream');
+const inspect = require('inspect-stream')
 
 // set up socket to stream audio through 
 var socket = io.connect('http://' + document.domain + ':' + location.port + '/');
-var socketStream = ss.createStream();
+var socketStream = ss.createStream({ objectMode: false });
 ss(socket).emit('audio', socketStream);
 
-var micStream = new MicrophoneStream({ objectMode: true });
+var micStream = new MicrophoneStream({ objectMode: false });
 
 // grab mic input
 getUserMedia({ video: false, audio: true }).then(function (audioStream) {
@@ -17,10 +18,10 @@ getUserMedia({ video: false, audio: true }).then(function (audioStream) {
   console.log(error);
 });
 
-micStream.on('format', function (format) {
-  console.log(format);
-});
-
 // pipe to server
 micStream.pipe(socketStream);
+//micStream.pipe(inspect()).pipe(socketStream);
 
+
+// same, but with debug
+//micStream.pipe(inspect(function (buf) { console.log(buf.getChannelData(0))})).pipe(socketStream);

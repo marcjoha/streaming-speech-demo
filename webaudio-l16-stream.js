@@ -21,7 +21,7 @@ var TARGET_SAMPLE_RATE = 16000;
  */
 function WebAudioL16Stream(options) {
   options = this.options = defaults(options, {
-    sourceSampleRate: 48000,
+    sourceSampleRate: 44100,
     downsample: true
   });
 
@@ -195,7 +195,8 @@ WebAudioL16Stream.prototype.transformAudioBuffer = function(audioBuffer, encodin
  * @param {Function} next
  */
 WebAudioL16Stream.prototype.transformBuffer = function(nodebuffer, encoding, next) {
-  var source = new Float32Array(nodebuffer.buffer);
+  //var source = new Float32Array(nodebuffer.buffer);
+  var source = nodebuffer.buffer;
   if (this.options.downsample) {
     source = this.downsample(source);
   }
