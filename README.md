@@ -1,13 +1,7 @@
 # streaming-speech-demo
 Demo web app using the Google Cloud Speech API in streaming mode.
 
-You need a GCP project, with the Speech API enabled.
-
-```bash
-export MY_PROJECT_NAME=marcus-is-testing
-gcloud projects create $MY_PROJECT_NAME
-gcloud config set project $MY_PROJECT_NAME
-```
+You need a billable GCP project, with the Speech API enabled.
 
 If deployed locally, you also need a service account key wired up in Application Default Credentials.
 
