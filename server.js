@@ -24,11 +24,9 @@ const recognizeStream = client
   })
   .on('error', console.error)
   .on('data', data => {
-    process.stdout.write(
-      data.results[0] && data.results[0].alternatives[0]
-        ? `Transcription: ${data.results[0].alternatives[0].transcript}\n`
-        : `\n\nReached transcription time limit, press Ctrl+C\n`
-    )
+    console.log(
+      `Transcription: ${data.results[0].alternatives[0].transcript}`
+    );
   }
 );
 
