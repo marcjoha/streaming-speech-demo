@@ -8,7 +8,7 @@ If deployed locally, you also need a service account key wired up in Application
 ```bash
 export PROJID="bla bla"
 gcloud iam service-accounts create streaming-speech-demo --display-name "streaming-speech-demo"
-gcloud iam service-accounts keys create svc-acc-key.json --iam-account=streaming-speech-demo@$MY_PROJECT_NAME.iam.gserviceaccount.com
+gcloud iam service-accounts keys create svc-acc-key.json --iam-account=streaming-speech-demo@$PROJID.iam.gserviceaccount.com
 export GOOGLE_APPLICATION_CREDENTIALS=svc-acc-key.json
 ```
 
