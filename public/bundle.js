@@ -3,7 +3,6 @@ var io = require('socket.io-client');
 var ss = require('socket.io-stream');
 var getUserMedia = require('get-user-media-promise');
 var MicrophoneStream = require('microphone-stream');
-const inspect = require('inspect-stream')
 
 // set up socket to stream audio through 
 var socket = io.connect('http://' + document.domain + ':' + location.port + '/');
@@ -20,14 +19,9 @@ getUserMedia({ video: false, audio: true }).then(function (audioStream) {
 });
 
 // pipe to server
-//micStream.pipe(socketStream);
-micStream.pipe(inspect()).pipe(socketStream);
+micStream.pipe(socketStream);
 
-
-// same, but with debug
-//micStream.pipe(inspect(function (buf) { console.log(buf.getChannelData(0))})).pipe(socketStream);
-
-},{"get-user-media-promise":28,"inspect-stream":38,"microphone-stream":63,"socket.io-client":75,"socket.io-stream":84}],2:[function(require,module,exports){
+},{"get-user-media-promise":25,"microphone-stream":30,"socket.io-client":34,"socket.io-stream":43}],2:[function(require,module,exports){
 module.exports = after
 
 function after(count, callback, err_cb) {
@@ -89,91 +83,6 @@ module.exports = function(arraybuffer, start, end) {
 };
 
 },{}],4:[function(require,module,exports){
-/**
- * @file Invokes function, returning an object of the results.
- * @version 1.1.1
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module attempt-x
- */
-
-'use strict';
-
-var getArgs = function _getArgs(args) {
-  var length = args.length >>> 0;
-  var array = [];
-  var argLength = length - 1;
-  if (argLength < 1) {
-    return array;
-  }
-
-  array.length = argLength;
-  for (var index = 1; index < length; index += 1) {
-    array[index - 1] = args[index];
-  }
-
-  return array;
-};
-
-/**
- * This method attempts to invoke the function, returning either the result or
- * the caught error object. Any additional arguments are provided to the
- * function when it's invoked.
- *
- * @param {Function} fn - The function to attempt.
- * @param {...*} [args] - The arguments to invoke the function with.
- * @returns {Object} Returns an object of the result.
- * @example
- * var attempt = require('attempt-x');
- *
- * function thrower() {
- *   throw new Error('Threw');
- * }
- *
- * attempt(thrower, 1, 2);
- * // {
- * //   threw: true,
- * //   value: // Error('Threw') object
- * // }
- *
- * function sumArgs(a, b) {
- *   return a + b;
- * }
- *
- * attempt(sumArgs, 1, 2);
- * // {
- * //   threw: false,
- * //   value: 3
- * // }
- *
- * var thisArg = [];
- * function pusher(a, b) {
- *   return this.push(a, b);
- * }
- *
- * attempt.call(thisArg, pusher, 1, 2);
- * // {
- * //   threw: false,
- * //   value: 2
- * // }
- * // thisArg => [1, 2];
- */
-module.exports = function attempt(fn) {
-  try {
-    return {
-      threw: false,
-      value: fn.apply(this, getArgs(arguments))
-    };
-  } catch (e) {
-    return {
-      threw: true,
-      value: e
-    };
-  }
-};
-
-},{}],5:[function(require,module,exports){
 
 /**
  * Expose `Backoff`.
@@ -260,7 +169,7 @@ Backoff.prototype.setJitter = function(jitter){
 };
 
 
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /*
  * base64-arraybuffer
  * https://github.com/niklasvh/base64-arraybuffer
@@ -329,7 +238,7 @@ Backoff.prototype.setJitter = function(jitter){
   };
 })();
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 (function (global){
 /**
  * Create a blob builder even when vendor prefixes exist
@@ -429,15 +338,19 @@ module.exports = (function() {
 })();
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function (Buffer){
-var isArrayBuffer = require('is-array-buffer-x')
+var toString = Object.prototype.toString
 
 var isModern = (
   typeof Buffer.alloc === 'function' &&
   typeof Buffer.allocUnsafe === 'function' &&
   typeof Buffer.from === 'function'
 )
+
+function isArrayBuffer (input) {
+  return toString.call(input).slice(8, -1) === 'ArrayBuffer'
+}
 
 function fromArrayBuffer (obj, byteOffset, length) {
   byteOffset >>>= 0
@@ -498,35 +411,7 @@ function bufferFrom (value, encodingOrOffset, length) {
 module.exports = bufferFrom
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":112,"is-array-buffer-x":47}],9:[function(require,module,exports){
-/**
- * @file Constructors cached from literals.
- * @version 1.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module cached-constructors-x
- */
-
-'use strict';
-
-/**
- * Constructors cached from literals.
- *
- * @type Object
- * @example
- * var constructors = require('cached-constructors-x');
- */
-module.exports = {
-  Array: [].constructor,
-  Boolean: true.constructor,
-  Number: (0).constructor,
-  Object: {}.constructor,
-  RegExp: (/(?:)/).constructor,
-  String: ''.constructor
-};
-
-},{}],10:[function(require,module,exports){
+},{"buffer":57}],8:[function(require,module,exports){
 /**
  * Slice reference.
  */
@@ -551,7 +436,7 @@ module.exports = function(obj, fn){
   }
 };
 
-},{}],11:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -716,7 +601,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],12:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 
 module.exports = function(a, b){
   var fn = function(){};
@@ -724,118 +609,7 @@ module.exports = function(a, b){
   a.prototype = new fn;
   a.prototype.constructor = a;
 };
-},{}],13:[function(require,module,exports){
-(function (Buffer){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-// NOTE: These type checking functions intentionally don't use `instanceof`
-// because it is fragile and can be easily faked with `Object.create()`.
-
-function isArray(arg) {
-  if (Array.isArray) {
-    return Array.isArray(arg);
-  }
-  return objectToString(arg) === '[object Array]';
-}
-exports.isArray = isArray;
-
-function isBoolean(arg) {
-  return typeof arg === 'boolean';
-}
-exports.isBoolean = isBoolean;
-
-function isNull(arg) {
-  return arg === null;
-}
-exports.isNull = isNull;
-
-function isNullOrUndefined(arg) {
-  return arg == null;
-}
-exports.isNullOrUndefined = isNullOrUndefined;
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-exports.isNumber = isNumber;
-
-function isString(arg) {
-  return typeof arg === 'string';
-}
-exports.isString = isString;
-
-function isSymbol(arg) {
-  return typeof arg === 'symbol';
-}
-exports.isSymbol = isSymbol;
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-exports.isUndefined = isUndefined;
-
-function isRegExp(re) {
-  return objectToString(re) === '[object RegExp]';
-}
-exports.isRegExp = isRegExp;
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-exports.isObject = isObject;
-
-function isDate(d) {
-  return objectToString(d) === '[object Date]';
-}
-exports.isDate = isDate;
-
-function isError(e) {
-  return (objectToString(e) === '[object Error]' || e instanceof Error);
-}
-exports.isError = isError;
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-exports.isFunction = isFunction;
-
-function isPrimitive(arg) {
-  return arg === null ||
-         typeof arg === 'boolean' ||
-         typeof arg === 'number' ||
-         typeof arg === 'string' ||
-         typeof arg === 'symbol' ||  // ES6 symbol
-         typeof arg === 'undefined';
-}
-exports.isPrimitive = isPrimitive;
-
-exports.isBuffer = Buffer.isBuffer;
-
-function objectToString(o) {
-  return Object.prototype.toString.call(o);
-}
-
-}).call(this,{"isBuffer":require("../../../../../../../../usr/local/lib/node_modules/browserify/node_modules/is-buffer/index.js")})
-},{"../../../../../../../../usr/local/lib/node_modules/browserify/node_modules/is-buffer/index.js":117}],14:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (process){
 /**
  * This is the web browser implementation of `debug()`.
@@ -859,12 +633,17 @@ exports.storage = 'undefined' != typeof chrome
  */
 
 exports.colors = [
-  'lightseagreen',
-  'forestgreen',
-  'goldenrod',
-  'dodgerblue',
-  'darkorchid',
-  'crimson'
+  '#0000CC', '#0000FF', '#0033CC', '#0033FF', '#0066CC', '#0066FF', '#0099CC',
+  '#0099FF', '#00CC00', '#00CC33', '#00CC66', '#00CC99', '#00CCCC', '#00CCFF',
+  '#3300CC', '#3300FF', '#3333CC', '#3333FF', '#3366CC', '#3366FF', '#3399CC',
+  '#3399FF', '#33CC00', '#33CC33', '#33CC66', '#33CC99', '#33CCCC', '#33CCFF',
+  '#6600CC', '#6600FF', '#6633CC', '#6633FF', '#66CC00', '#66CC33', '#9900CC',
+  '#9900FF', '#9933CC', '#9933FF', '#99CC00', '#99CC33', '#CC0000', '#CC0033',
+  '#CC0066', '#CC0099', '#CC00CC', '#CC00FF', '#CC3300', '#CC3333', '#CC3366',
+  '#CC3399', '#CC33CC', '#CC33FF', '#CC6600', '#CC6633', '#CC9900', '#CC9933',
+  '#CCCC00', '#CCCC33', '#FF0000', '#FF0033', '#FF0066', '#FF0099', '#FF00CC',
+  '#FF00FF', '#FF3300', '#FF3333', '#FF3366', '#FF3399', '#FF33CC', '#FF33FF',
+  '#FF6600', '#FF6633', '#FF9900', '#FF9933', '#FFCC00', '#FFCC33'
 ];
 
 /**
@@ -881,6 +660,11 @@ function useColors() {
   // explicitly
   if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
     return true;
+  }
+
+  // Internet Explorer and Edge do not support colors.
+  if (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/)) {
+    return false;
   }
 
   // is webkit? http://stackoverflow.com/a/16459606/376773
@@ -1024,7 +808,7 @@ function localstorage() {
 }
 
 }).call(this,require('_process'))
-},{"./debug":15,"_process":120}],15:[function(require,module,exports){
+},{"./debug":12,"_process":65}],12:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -1041,6 +825,11 @@ exports.enabled = enabled;
 exports.humanize = require('ms');
 
 /**
+ * Active `debug` instances.
+ */
+exports.instances = [];
+
+/**
  * The currently active debug mode names, and names to skip.
  */
 
@@ -1054,12 +843,6 @@ exports.skips = [];
  */
 
 exports.formatters = {};
-
-/**
- * Previous log timestamp.
- */
-
-var prevTime;
 
 /**
  * Select a color.
@@ -1088,6 +871,8 @@ function selectColor(namespace) {
  */
 
 function createDebug(namespace) {
+
+  var prevTime;
 
   function debug() {
     // disabled?
@@ -1145,13 +930,26 @@ function createDebug(namespace) {
   debug.enabled = exports.enabled(namespace);
   debug.useColors = exports.useColors();
   debug.color = selectColor(namespace);
+  debug.destroy = destroy;
 
   // env-specific initialization logic for debug instances
   if ('function' === typeof exports.init) {
     exports.init(debug);
   }
 
+  exports.instances.push(debug);
+
   return debug;
+}
+
+function destroy () {
+  var index = exports.instances.indexOf(this);
+  if (index !== -1) {
+    exports.instances.splice(index, 1);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 /**
@@ -1168,10 +966,11 @@ function enable(namespaces) {
   exports.names = [];
   exports.skips = [];
 
+  var i;
   var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
   var len = split.length;
 
-  for (var i = 0; i < len; i++) {
+  for (i = 0; i < len; i++) {
     if (!split[i]) continue; // ignore empty strings
     namespaces = split[i].replace(/\*/g, '.*?');
     if (namespaces[0] === '-') {
@@ -1179,6 +978,11 @@ function enable(namespaces) {
     } else {
       exports.names.push(new RegExp('^' + namespaces + '$'));
     }
+  }
+
+  for (i = 0; i < exports.instances.length; i++) {
+    var instance = exports.instances[i];
+    instance.enabled = exports.enabled(instance.namespace);
   }
 }
 
@@ -1201,6 +1005,9 @@ function disable() {
  */
 
 function enabled(name) {
+  if (name[name.length - 1] === '*') {
+    return true;
+  }
   var i, len;
   for (i = 0, len = exports.skips.length; i < len; i++) {
     if (exports.skips[i].test(name)) {
@@ -1228,7 +1035,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":64}],16:[function(require,module,exports){
+},{"ms":31}],13:[function(require,module,exports){
 
 module.exports = require('./socket');
 
@@ -1240,7 +1047,7 @@ module.exports = require('./socket');
  */
 module.exports.parser = require('engine.io-parser');
 
-},{"./socket":17,"engine.io-parser":25}],17:[function(require,module,exports){
+},{"./socket":14,"engine.io-parser":22}],14:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -1987,7 +1794,7 @@ Socket.prototype.filterUpgrades = function (upgrades) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./transport":18,"./transports/index":19,"component-emitter":11,"debug":14,"engine.io-parser":25,"indexof":35,"parseqs":69,"parseuri":70}],18:[function(require,module,exports){
+},{"./transport":15,"./transports/index":16,"component-emitter":9,"debug":11,"engine.io-parser":22,"indexof":29,"parseqs":32,"parseuri":33}],15:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -2146,7 +1953,7 @@ Transport.prototype.onClose = function () {
   this.emit('close');
 };
 
-},{"component-emitter":11,"engine.io-parser":25}],19:[function(require,module,exports){
+},{"component-emitter":9,"engine.io-parser":22}],16:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies
@@ -2203,7 +2010,7 @@ function polling (opts) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling-jsonp":20,"./polling-xhr":21,"./websocket":23,"xmlhttprequest-ssl":24}],20:[function(require,module,exports){
+},{"./polling-jsonp":17,"./polling-xhr":18,"./websocket":20,"xmlhttprequest-ssl":21}],17:[function(require,module,exports){
 (function (global){
 
 /**
@@ -2438,7 +2245,7 @@ JSONPPolling.prototype.doWrite = function (data, fn) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":22,"component-inherit":12}],21:[function(require,module,exports){
+},{"./polling":19,"component-inherit":10}],18:[function(require,module,exports){
 (function (global){
 /**
  * Module requirements.
@@ -2681,13 +2488,12 @@ Request.prototype.create = function () {
     } else {
       xhr.onreadystatechange = function () {
         if (xhr.readyState === 2) {
-          var contentType;
           try {
-            contentType = xhr.getResponseHeader('Content-Type');
+            var contentType = xhr.getResponseHeader('Content-Type');
+            if (self.supportsBinary && contentType === 'application/octet-stream') {
+              xhr.responseType = 'arraybuffer';
+            }
           } catch (e) {}
-          if (contentType === 'application/octet-stream') {
-            xhr.responseType = 'arraybuffer';
-          }
         }
         if (4 !== xhr.readyState) return;
         if (200 === xhr.status || 1223 === xhr.status) {
@@ -2855,7 +2661,7 @@ function unloadHandler () {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":22,"component-emitter":11,"component-inherit":12,"debug":14,"xmlhttprequest-ssl":24}],22:[function(require,module,exports){
+},{"./polling":19,"component-emitter":9,"component-inherit":10,"debug":11,"xmlhttprequest-ssl":21}],19:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -3102,7 +2908,7 @@ Polling.prototype.uri = function () {
   return schema + '://' + (ipv6 ? '[' + this.hostname + ']' : this.hostname) + port + this.path + query;
 };
 
-},{"../transport":18,"component-inherit":12,"debug":14,"engine.io-parser":25,"parseqs":69,"xmlhttprequest-ssl":24,"yeast":109}],23:[function(require,module,exports){
+},{"../transport":15,"component-inherit":10,"debug":11,"engine.io-parser":22,"parseqs":32,"xmlhttprequest-ssl":21,"yeast":54}],20:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -3392,7 +3198,7 @@ WS.prototype.check = function () {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../transport":18,"component-inherit":12,"debug":14,"engine.io-parser":25,"parseqs":69,"ws":111,"yeast":109}],24:[function(require,module,exports){
+},{"../transport":15,"component-inherit":10,"debug":11,"engine.io-parser":22,"parseqs":32,"ws":56,"yeast":54}],21:[function(require,module,exports){
 (function (global){
 // browser shim for xmlhttprequest module
 
@@ -3433,7 +3239,7 @@ module.exports = function (opts) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"has-cors":31}],25:[function(require,module,exports){
+},{"has-cors":28}],22:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -4043,7 +3849,7 @@ exports.decodePayloadAsBinary = function (data, binaryType, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./keys":26,"./utf8":27,"after":2,"arraybuffer.slice":3,"base64-arraybuffer":6,"blob":7,"has-binary2":29}],26:[function(require,module,exports){
+},{"./keys":23,"./utf8":24,"after":2,"arraybuffer.slice":3,"base64-arraybuffer":5,"blob":6,"has-binary2":26}],23:[function(require,module,exports){
 
 /**
  * Gets the keys for an object.
@@ -4064,7 +3870,7 @@ module.exports = Object.keys || function keys (obj){
   return arr;
 };
 
-},{}],27:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/utf8js v2.1.2 by @mathias */
 ;(function(root) {
@@ -4323,7 +4129,7 @@ module.exports = Object.keys || function keys (obj){
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],28:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 // loosely based on example code at https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
 (function (root) {
   'use strict';
@@ -4403,7 +4209,7 @@ module.exports = Object.keys || function keys (obj){
       // assuming it does, try getUserMedia and then all of the prefixed versions
 
       if (!gum) {
-        return reject(new NotSupportedError())
+        return reject(new NotSupportedError());
       }
       gum.call(navigator, constraints, resolve, reject);
     });
@@ -4428,14 +4234,14 @@ module.exports = Object.keys || function keys (obj){
   } else {
     // Browser globals
     // polyfill the MediaDevices API if it does not exist.
-    root.navigator = root.navigator || {};
-    root.nagivator.mediaDevices = root.navigator.mediaDevices || {};
-    root.nagivator.mediaDevices.getUserMedia = root.nagivator.mediaDevices.getUserMedia || getUserMedia;
+    root.navigator || (root.navigator = {});
+    root.navigator.mediaDevices || (root.navigator.mediaDevices = {});
+    root.navigator.mediaDevices.getUserMedia || (root.navigator.mediaDevices.getUserMedia = getUserMedia);
   }
 }(this));
 
-},{}],29:[function(require,module,exports){
-(function (global){
+},{}],26:[function(require,module,exports){
+(function (Buffer){
 /* global Blob File */
 
 /*
@@ -4445,8 +4251,10 @@ module.exports = Object.keys || function keys (obj){
 var isArray = require('isarray');
 
 var toString = Object.prototype.toString;
-var withNativeBlob = typeof global.Blob === 'function' || toString.call(global.Blob) === '[object BlobConstructor]';
-var withNativeFile = typeof global.File === 'function' || toString.call(global.File) === '[object FileConstructor]';
+var withNativeBlob = typeof Blob === 'function' ||
+                        typeof Blob !== 'undefined' && toString.call(Blob) === '[object BlobConstructor]';
+var withNativeFile = typeof File === 'function' ||
+                        typeof File !== 'undefined' && toString.call(File) === '[object FileConstructor]';
 
 /**
  * Module exports.
@@ -4477,11 +4285,11 @@ function hasBinary (obj) {
     return false;
   }
 
-  if ((typeof global.Buffer === 'function' && global.Buffer.isBuffer && global.Buffer.isBuffer(obj)) ||
-     (typeof global.ArrayBuffer === 'function' && obj instanceof ArrayBuffer) ||
-     (withNativeBlob && obj instanceof Blob) ||
-     (withNativeFile && obj instanceof File)
-    ) {
+  if ((typeof Buffer === 'function' && Buffer.isBuffer && Buffer.isBuffer(obj)) ||
+    (typeof ArrayBuffer === 'function' && obj instanceof ArrayBuffer) ||
+    (withNativeBlob && obj instanceof Blob) ||
+    (withNativeFile && obj instanceof File)
+  ) {
     return true;
   }
 
@@ -4499,15 +4307,15 @@ function hasBinary (obj) {
   return false;
 }
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"isarray":30}],30:[function(require,module,exports){
+}).call(this,require("buffer").Buffer)
+},{"buffer":57,"isarray":27}],27:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],31:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -4526,90 +4334,7 @@ try {
   module.exports = false;
 }
 
-},{}],32:[function(require,module,exports){
-/**
- * @file Used to determine whether an object has an own property with the specified property key.
- * @see {@link http://www.ecma-international.org/ecma-262/6.0/#sec-hasownproperty|7.3.11 HasOwnProperty (O, P)}
- * @version 3.2.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module has-own-property-x
- */
-
-'use strict';
-
-var toObject = require('to-object-x');
-var toPropertyKey = require('to-property-key-x');
-var hop = require('cached-constructors-x').Object.prototype.hasOwnProperty;
-
-/**
- * The `hasOwnProperty` method returns a boolean indicating whether
- * the `object` has the specified `property`. Does not attempt to fix known
- * issues in older browsers, but does ES6ify the method.
- *
- * @param {!Object} object - The object to test.
- * @throws {TypeError} If object is null or undefined.
- * @param {string|Symbol} property - The name or Symbol of the property to test.
- * @returns {boolean} `true` if the property is set on `object`, else `false`.
- * @example
- * var hasOwnProperty = require('has-own-property-x');
- * var o = {
- *   foo: 'bar'
- * };
- *
- *
- * hasOwnProperty(o, 'bar'); // false
- * hasOwnProperty(o, 'foo'); // true
- * hasOwnProperty(undefined, 'foo');
- *                   // TypeError: Cannot convert undefined or null to object
- */
-module.exports = function hasOwnProperty(object, property) {
-  return hop.call(toObject(object), toPropertyKey(property));
-};
-
-},{"cached-constructors-x":9,"to-object-x":98,"to-property-key-x":100}],33:[function(require,module,exports){
-/**
- * @file Tests if ES6 Symbol is supported.
- * @version 1.4.1
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module has-symbol-support-x
- */
-
-'use strict';
-
-/**
- * Indicates if `Symbol`exists and creates the correct type.
- * `true`, if it exists and creates the correct type, otherwise `false`.
- *
- * @type boolean
- */
-module.exports = typeof Symbol === 'function' && typeof Symbol('') === 'symbol';
-
-},{}],34:[function(require,module,exports){
-/**
- * @file Tests if ES6 @@toStringTag is supported.
- * @see {@link http://www.ecma-international.org/ecma-262/6.0/#sec-@@tostringtag|26.3.1 @@toStringTag}
- * @version 1.4.1
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module has-to-string-tag-x
- */
-
-'use strict';
-
-/**
- * Indicates if `Symbol.toStringTag`exists and is the correct type.
- * `true`, if it exists and is the correct type, otherwise `false`.
- *
- * @type boolean
- */
-module.exports = require('has-symbol-support-x') && typeof Symbol.toStringTag === 'symbol';
-
-},{"has-symbol-support-x":33}],35:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -4620,2857 +4345,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],36:[function(require,module,exports){
-/**
- * @file The constant value Infinity.
- * @version 1.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module infinity-x
- */
-
-'use strict';
-
-/**
- * The constant value Infinity derived mathematically by 1 / 0.
- *
- * @type number
- * @example
- * var INFINITY = require('infinity-x');
- *
- * INFINITY === Infinity; // true
- * -INFINITY === -Infinity; // true
- * INFINITY === -Infinity; // false
- */
-module.exports = 1 / 0;
-
-},{}],37:[function(require,module,exports){
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
-},{}],38:[function(require,module,exports){
-(function (Buffer){
-'use strict';
-
-var stream = require('stream');
-
-var util  =  require('util')
-  , slice =  Array.prototype.slice;
-
-function isBuffer (chunk) {
-  // it seems like chunks emitted from a readable are considered not to be buffers by the browserify-buffer module
-  // mainly because instanceof chunk !== Buffer although chunk is actually a Buffer
-  // however these Buffers have an .offset and .get, and numerous .read methods, so if we find these we'll assume it's a buffer
-  return Buffer.isBuffer(chunk)
-    || ( typeof chunk.offset === 'number'
-      && typeof chunk.get === 'function'
-      && typeof chunk.readDoubleBE === 'function'
-      && typeof chunk.readInt32BE === 'function')
-}
-
-function blowup () {
-  throw new Error('Argument to inspect-stream needs to be either Number for depth or a log Function');
-}
-
-function defaultLog (depth) {
-  function log (data) {
-    var val = isBuffer(data) ? data.toString() : data;
-    console.log(util.inspect(val, false, depth, true));
-  }
-
-  return function (data) {
-    if (arguments.length === 1) {
-      log(data);
-    } else {
-      slice.call(arguments).forEach(log);
-    }
-  };
-}
-
-var Transform = stream.Transform;
-
-/**
- * Creates a transform stream that will log the data coming through and push it downstream.
- * 
- * @name exports
- * @function
- * @param depthOrLog {Number|Function} allows to override the log inspect depth or replace the log function entirely.
- * @return {TransformStream} that behaves like the upstream.
- */
-module.exports = function (depthOrLog) { 
-  var inspect = new InspectTransform(depthOrLog);
-  inspect.on('pipe', function (readable) {
-    this._readableState.objectMode = readable._readableState.objectMode;
-    this._writableState.objectMode = readable._readableState.objectMode;
-  })
-
-  return inspect;
-}
-
-util.inherits(InspectTransform, Transform);
-
-function InspectTransform (depthOrLog) {
-  if (!(this instanceof InspectTransform)) return new InspectTransform(depthOrLog);
-
-  Transform.call(this);
-
-       if (typeof depthOrLog === 'undefined') this._log = defaultLog(1);
-  else if (typeof depthOrLog === 'number')    this._log = defaultLog(depthOrLog);
-  else if (typeof depthOrLog === 'function')  this._log = depthOrLog;
-  else blowup();
-}
-
-InspectTransform.prototype._transform = function (chunk, encoding, cb) {
-  this._log(chunk);
-  this.push(chunk);
-  cb()
-}
-
-}).call(this,{"isBuffer":require("../../../../../../../usr/local/lib/node_modules/browserify/node_modules/is-buffer/index.js")})
-},{"../../../../../../../usr/local/lib/node_modules/browserify/node_modules/is-buffer/index.js":117,"stream":45,"util":140}],39:[function(require,module,exports){
-module.exports = Array.isArray || function (arr) {
-  return Object.prototype.toString.call(arr) == '[object Array]';
-};
-
-},{}],40:[function(require,module,exports){
-(function (process){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-// a duplex stream is just a stream that is both readable and writable.
-// Since JS doesn't have multiple prototypal inheritance, this class
-// prototypally inherits from Readable, and then parasitically from
-// Writable.
-
-module.exports = Duplex;
-
-/*<replacement>*/
-var objectKeys = Object.keys || function (obj) {
-  var keys = [];
-  for (var key in obj) keys.push(key);
-  return keys;
-}
-/*</replacement>*/
-
-
-/*<replacement>*/
-var util = require('core-util-is');
-util.inherits = require('inherits');
-/*</replacement>*/
-
-var Readable = require('./_stream_readable');
-var Writable = require('./_stream_writable');
-
-util.inherits(Duplex, Readable);
-
-forEach(objectKeys(Writable.prototype), function(method) {
-  if (!Duplex.prototype[method])
-    Duplex.prototype[method] = Writable.prototype[method];
-});
-
-function Duplex(options) {
-  if (!(this instanceof Duplex))
-    return new Duplex(options);
-
-  Readable.call(this, options);
-  Writable.call(this, options);
-
-  if (options && options.readable === false)
-    this.readable = false;
-
-  if (options && options.writable === false)
-    this.writable = false;
-
-  this.allowHalfOpen = true;
-  if (options && options.allowHalfOpen === false)
-    this.allowHalfOpen = false;
-
-  this.once('end', onend);
-}
-
-// the no-half-open enforcer
-function onend() {
-  // if we allow half-open state, or if the writable side ended,
-  // then we're ok.
-  if (this.allowHalfOpen || this._writableState.ended)
-    return;
-
-  // no more data can be written.
-  // But allow more writes to happen in this tick.
-  process.nextTick(this.end.bind(this));
-}
-
-function forEach (xs, f) {
-  for (var i = 0, l = xs.length; i < l; i++) {
-    f(xs[i], i);
-  }
-}
-
-}).call(this,require('_process'))
-},{"./_stream_readable":42,"./_stream_writable":44,"_process":120,"core-util-is":13,"inherits":37}],41:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-// a passthrough stream.
-// basically just the most minimal sort of Transform stream.
-// Every written chunk gets output as-is.
-
-module.exports = PassThrough;
-
-var Transform = require('./_stream_transform');
-
-/*<replacement>*/
-var util = require('core-util-is');
-util.inherits = require('inherits');
-/*</replacement>*/
-
-util.inherits(PassThrough, Transform);
-
-function PassThrough(options) {
-  if (!(this instanceof PassThrough))
-    return new PassThrough(options);
-
-  Transform.call(this, options);
-}
-
-PassThrough.prototype._transform = function(chunk, encoding, cb) {
-  cb(null, chunk);
-};
-
-},{"./_stream_transform":43,"core-util-is":13,"inherits":37}],42:[function(require,module,exports){
-(function (process){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-module.exports = Readable;
-
-/*<replacement>*/
-var isArray = require('isarray');
-/*</replacement>*/
-
-
-/*<replacement>*/
-var Buffer = require('buffer').Buffer;
-/*</replacement>*/
-
-Readable.ReadableState = ReadableState;
-
-var EE = require('events').EventEmitter;
-
-/*<replacement>*/
-if (!EE.listenerCount) EE.listenerCount = function(emitter, type) {
-  return emitter.listeners(type).length;
-};
-/*</replacement>*/
-
-var Stream = require('stream');
-
-/*<replacement>*/
-var util = require('core-util-is');
-util.inherits = require('inherits');
-/*</replacement>*/
-
-var StringDecoder;
-
-
-/*<replacement>*/
-var debug = require('util');
-if (debug && debug.debuglog) {
-  debug = debug.debuglog('stream');
-} else {
-  debug = function () {};
-}
-/*</replacement>*/
-
-
-util.inherits(Readable, Stream);
-
-function ReadableState(options, stream) {
-  var Duplex = require('./_stream_duplex');
-
-  options = options || {};
-
-  // the point at which it stops calling _read() to fill the buffer
-  // Note: 0 is a valid value, means "don't call _read preemptively ever"
-  var hwm = options.highWaterMark;
-  var defaultHwm = options.objectMode ? 16 : 16 * 1024;
-  this.highWaterMark = (hwm || hwm === 0) ? hwm : defaultHwm;
-
-  // cast to ints.
-  this.highWaterMark = ~~this.highWaterMark;
-
-  this.buffer = [];
-  this.length = 0;
-  this.pipes = null;
-  this.pipesCount = 0;
-  this.flowing = null;
-  this.ended = false;
-  this.endEmitted = false;
-  this.reading = false;
-
-  // a flag to be able to tell if the onwrite cb is called immediately,
-  // or on a later tick.  We set this to true at first, because any
-  // actions that shouldn't happen until "later" should generally also
-  // not happen before the first write call.
-  this.sync = true;
-
-  // whenever we return null, then we set a flag to say
-  // that we're awaiting a 'readable' event emission.
-  this.needReadable = false;
-  this.emittedReadable = false;
-  this.readableListening = false;
-
-
-  // object stream flag. Used to make read(n) ignore n and to
-  // make all the buffer merging and length checks go away
-  this.objectMode = !!options.objectMode;
-
-  if (stream instanceof Duplex)
-    this.objectMode = this.objectMode || !!options.readableObjectMode;
-
-  // Crypto is kind of old and crusty.  Historically, its default string
-  // encoding is 'binary' so we have to make this configurable.
-  // Everything else in the universe uses 'utf8', though.
-  this.defaultEncoding = options.defaultEncoding || 'utf8';
-
-  // when piping, we only care about 'readable' events that happen
-  // after read()ing all the bytes and not getting any pushback.
-  this.ranOut = false;
-
-  // the number of writers that are awaiting a drain event in .pipe()s
-  this.awaitDrain = 0;
-
-  // if true, a maybeReadMore has been scheduled
-  this.readingMore = false;
-
-  this.decoder = null;
-  this.encoding = null;
-  if (options.encoding) {
-    if (!StringDecoder)
-      StringDecoder = require('string_decoder/').StringDecoder;
-    this.decoder = new StringDecoder(options.encoding);
-    this.encoding = options.encoding;
-  }
-}
-
-function Readable(options) {
-  var Duplex = require('./_stream_duplex');
-
-  if (!(this instanceof Readable))
-    return new Readable(options);
-
-  this._readableState = new ReadableState(options, this);
-
-  // legacy
-  this.readable = true;
-
-  Stream.call(this);
-}
-
-// Manually shove something into the read() buffer.
-// This returns true if the highWaterMark has not been hit yet,
-// similar to how Writable.write() returns true if you should
-// write() some more.
-Readable.prototype.push = function(chunk, encoding) {
-  var state = this._readableState;
-
-  if (util.isString(chunk) && !state.objectMode) {
-    encoding = encoding || state.defaultEncoding;
-    if (encoding !== state.encoding) {
-      chunk = new Buffer(chunk, encoding);
-      encoding = '';
-    }
-  }
-
-  return readableAddChunk(this, state, chunk, encoding, false);
-};
-
-// Unshift should *always* be something directly out of read()
-Readable.prototype.unshift = function(chunk) {
-  var state = this._readableState;
-  return readableAddChunk(this, state, chunk, '', true);
-};
-
-function readableAddChunk(stream, state, chunk, encoding, addToFront) {
-  var er = chunkInvalid(state, chunk);
-  if (er) {
-    stream.emit('error', er);
-  } else if (util.isNullOrUndefined(chunk)) {
-    state.reading = false;
-    if (!state.ended)
-      onEofChunk(stream, state);
-  } else if (state.objectMode || chunk && chunk.length > 0) {
-    if (state.ended && !addToFront) {
-      var e = new Error('stream.push() after EOF');
-      stream.emit('error', e);
-    } else if (state.endEmitted && addToFront) {
-      var e = new Error('stream.unshift() after end event');
-      stream.emit('error', e);
-    } else {
-      if (state.decoder && !addToFront && !encoding)
-        chunk = state.decoder.write(chunk);
-
-      if (!addToFront)
-        state.reading = false;
-
-      // if we want the data now, just emit it.
-      if (state.flowing && state.length === 0 && !state.sync) {
-        stream.emit('data', chunk);
-        stream.read(0);
-      } else {
-        // update the buffer info.
-        state.length += state.objectMode ? 1 : chunk.length;
-        if (addToFront)
-          state.buffer.unshift(chunk);
-        else
-          state.buffer.push(chunk);
-
-        if (state.needReadable)
-          emitReadable(stream);
-      }
-
-      maybeReadMore(stream, state);
-    }
-  } else if (!addToFront) {
-    state.reading = false;
-  }
-
-  return needMoreData(state);
-}
-
-
-
-// if it's past the high water mark, we can push in some more.
-// Also, if we have no data yet, we can stand some
-// more bytes.  This is to work around cases where hwm=0,
-// such as the repl.  Also, if the push() triggered a
-// readable event, and the user called read(largeNumber) such that
-// needReadable was set, then we ought to push more, so that another
-// 'readable' event will be triggered.
-function needMoreData(state) {
-  return !state.ended &&
-         (state.needReadable ||
-          state.length < state.highWaterMark ||
-          state.length === 0);
-}
-
-// backwards compatibility.
-Readable.prototype.setEncoding = function(enc) {
-  if (!StringDecoder)
-    StringDecoder = require('string_decoder/').StringDecoder;
-  this._readableState.decoder = new StringDecoder(enc);
-  this._readableState.encoding = enc;
-  return this;
-};
-
-// Don't raise the hwm > 128MB
-var MAX_HWM = 0x800000;
-function roundUpToNextPowerOf2(n) {
-  if (n >= MAX_HWM) {
-    n = MAX_HWM;
-  } else {
-    // Get the next highest power of 2
-    n--;
-    for (var p = 1; p < 32; p <<= 1) n |= n >> p;
-    n++;
-  }
-  return n;
-}
-
-function howMuchToRead(n, state) {
-  if (state.length === 0 && state.ended)
-    return 0;
-
-  if (state.objectMode)
-    return n === 0 ? 0 : 1;
-
-  if (isNaN(n) || util.isNull(n)) {
-    // only flow one buffer at a time
-    if (state.flowing && state.buffer.length)
-      return state.buffer[0].length;
-    else
-      return state.length;
-  }
-
-  if (n <= 0)
-    return 0;
-
-  // If we're asking for more than the target buffer level,
-  // then raise the water mark.  Bump up to the next highest
-  // power of 2, to prevent increasing it excessively in tiny
-  // amounts.
-  if (n > state.highWaterMark)
-    state.highWaterMark = roundUpToNextPowerOf2(n);
-
-  // don't have that much.  return null, unless we've ended.
-  if (n > state.length) {
-    if (!state.ended) {
-      state.needReadable = true;
-      return 0;
-    } else
-      return state.length;
-  }
-
-  return n;
-}
-
-// you can override either this method, or the async _read(n) below.
-Readable.prototype.read = function(n) {
-  debug('read', n);
-  var state = this._readableState;
-  var nOrig = n;
-
-  if (!util.isNumber(n) || n > 0)
-    state.emittedReadable = false;
-
-  // if we're doing read(0) to trigger a readable event, but we
-  // already have a bunch of data in the buffer, then just trigger
-  // the 'readable' event and move on.
-  if (n === 0 &&
-      state.needReadable &&
-      (state.length >= state.highWaterMark || state.ended)) {
-    debug('read: emitReadable', state.length, state.ended);
-    if (state.length === 0 && state.ended)
-      endReadable(this);
-    else
-      emitReadable(this);
-    return null;
-  }
-
-  n = howMuchToRead(n, state);
-
-  // if we've ended, and we're now clear, then finish it up.
-  if (n === 0 && state.ended) {
-    if (state.length === 0)
-      endReadable(this);
-    return null;
-  }
-
-  // All the actual chunk generation logic needs to be
-  // *below* the call to _read.  The reason is that in certain
-  // synthetic stream cases, such as passthrough streams, _read
-  // may be a completely synchronous operation which may change
-  // the state of the read buffer, providing enough data when
-  // before there was *not* enough.
-  //
-  // So, the steps are:
-  // 1. Figure out what the state of things will be after we do
-  // a read from the buffer.
-  //
-  // 2. If that resulting state will trigger a _read, then call _read.
-  // Note that this may be asynchronous, or synchronous.  Yes, it is
-  // deeply ugly to write APIs this way, but that still doesn't mean
-  // that the Readable class should behave improperly, as streams are
-  // designed to be sync/async agnostic.
-  // Take note if the _read call is sync or async (ie, if the read call
-  // has returned yet), so that we know whether or not it's safe to emit
-  // 'readable' etc.
-  //
-  // 3. Actually pull the requested chunks out of the buffer and return.
-
-  // if we need a readable event, then we need to do some reading.
-  var doRead = state.needReadable;
-  debug('need readable', doRead);
-
-  // if we currently have less than the highWaterMark, then also read some
-  if (state.length === 0 || state.length - n < state.highWaterMark) {
-    doRead = true;
-    debug('length less than watermark', doRead);
-  }
-
-  // however, if we've ended, then there's no point, and if we're already
-  // reading, then it's unnecessary.
-  if (state.ended || state.reading) {
-    doRead = false;
-    debug('reading or ended', doRead);
-  }
-
-  if (doRead) {
-    debug('do read');
-    state.reading = true;
-    state.sync = true;
-    // if the length is currently zero, then we *need* a readable event.
-    if (state.length === 0)
-      state.needReadable = true;
-    // call internal read method
-    this._read(state.highWaterMark);
-    state.sync = false;
-  }
-
-  // If _read pushed data synchronously, then `reading` will be false,
-  // and we need to re-evaluate how much data we can return to the user.
-  if (doRead && !state.reading)
-    n = howMuchToRead(nOrig, state);
-
-  var ret;
-  if (n > 0)
-    ret = fromList(n, state);
-  else
-    ret = null;
-
-  if (util.isNull(ret)) {
-    state.needReadable = true;
-    n = 0;
-  }
-
-  state.length -= n;
-
-  // If we have nothing in the buffer, then we want to know
-  // as soon as we *do* get something into the buffer.
-  if (state.length === 0 && !state.ended)
-    state.needReadable = true;
-
-  // If we tried to read() past the EOF, then emit end on the next tick.
-  if (nOrig !== n && state.ended && state.length === 0)
-    endReadable(this);
-
-  if (!util.isNull(ret))
-    this.emit('data', ret);
-
-  return ret;
-};
-
-function chunkInvalid(state, chunk) {
-  var er = null;
-  if (!util.isBuffer(chunk) &&
-      !util.isString(chunk) &&
-      !util.isNullOrUndefined(chunk) &&
-      !state.objectMode) {
-    er = new TypeError('Invalid non-string/buffer chunk');
-  }
-  return er;
-}
-
-
-function onEofChunk(stream, state) {
-  if (state.decoder && !state.ended) {
-    var chunk = state.decoder.end();
-    if (chunk && chunk.length) {
-      state.buffer.push(chunk);
-      state.length += state.objectMode ? 1 : chunk.length;
-    }
-  }
-  state.ended = true;
-
-  // emit 'readable' now to make sure it gets picked up.
-  emitReadable(stream);
-}
-
-// Don't emit readable right away in sync mode, because this can trigger
-// another read() call => stack overflow.  This way, it might trigger
-// a nextTick recursion warning, but that's not so bad.
-function emitReadable(stream) {
-  var state = stream._readableState;
-  state.needReadable = false;
-  if (!state.emittedReadable) {
-    debug('emitReadable', state.flowing);
-    state.emittedReadable = true;
-    if (state.sync)
-      process.nextTick(function() {
-        emitReadable_(stream);
-      });
-    else
-      emitReadable_(stream);
-  }
-}
-
-function emitReadable_(stream) {
-  debug('emit readable');
-  stream.emit('readable');
-  flow(stream);
-}
-
-
-// at this point, the user has presumably seen the 'readable' event,
-// and called read() to consume some data.  that may have triggered
-// in turn another _read(n) call, in which case reading = true if
-// it's in progress.
-// However, if we're not ended, or reading, and the length < hwm,
-// then go ahead and try to read some more preemptively.
-function maybeReadMore(stream, state) {
-  if (!state.readingMore) {
-    state.readingMore = true;
-    process.nextTick(function() {
-      maybeReadMore_(stream, state);
-    });
-  }
-}
-
-function maybeReadMore_(stream, state) {
-  var len = state.length;
-  while (!state.reading && !state.flowing && !state.ended &&
-         state.length < state.highWaterMark) {
-    debug('maybeReadMore read 0');
-    stream.read(0);
-    if (len === state.length)
-      // didn't get any data, stop spinning.
-      break;
-    else
-      len = state.length;
-  }
-  state.readingMore = false;
-}
-
-// abstract method.  to be overridden in specific implementation classes.
-// call cb(er, data) where data is <= n in length.
-// for virtual (non-string, non-buffer) streams, "length" is somewhat
-// arbitrary, and perhaps not very meaningful.
-Readable.prototype._read = function(n) {
-  this.emit('error', new Error('not implemented'));
-};
-
-Readable.prototype.pipe = function(dest, pipeOpts) {
-  var src = this;
-  var state = this._readableState;
-
-  switch (state.pipesCount) {
-    case 0:
-      state.pipes = dest;
-      break;
-    case 1:
-      state.pipes = [state.pipes, dest];
-      break;
-    default:
-      state.pipes.push(dest);
-      break;
-  }
-  state.pipesCount += 1;
-  debug('pipe count=%d opts=%j', state.pipesCount, pipeOpts);
-
-  var doEnd = (!pipeOpts || pipeOpts.end !== false) &&
-              dest !== process.stdout &&
-              dest !== process.stderr;
-
-  var endFn = doEnd ? onend : cleanup;
-  if (state.endEmitted)
-    process.nextTick(endFn);
-  else
-    src.once('end', endFn);
-
-  dest.on('unpipe', onunpipe);
-  function onunpipe(readable) {
-    debug('onunpipe');
-    if (readable === src) {
-      cleanup();
-    }
-  }
-
-  function onend() {
-    debug('onend');
-    dest.end();
-  }
-
-  // when the dest drains, it reduces the awaitDrain counter
-  // on the source.  This would be more elegant with a .once()
-  // handler in flow(), but adding and removing repeatedly is
-  // too slow.
-  var ondrain = pipeOnDrain(src);
-  dest.on('drain', ondrain);
-
-  function cleanup() {
-    debug('cleanup');
-    // cleanup event handlers once the pipe is broken
-    dest.removeListener('close', onclose);
-    dest.removeListener('finish', onfinish);
-    dest.removeListener('drain', ondrain);
-    dest.removeListener('error', onerror);
-    dest.removeListener('unpipe', onunpipe);
-    src.removeListener('end', onend);
-    src.removeListener('end', cleanup);
-    src.removeListener('data', ondata);
-
-    // if the reader is waiting for a drain event from this
-    // specific writer, then it would cause it to never start
-    // flowing again.
-    // So, if this is awaiting a drain, then we just call it now.
-    // If we don't know, then assume that we are waiting for one.
-    if (state.awaitDrain &&
-        (!dest._writableState || dest._writableState.needDrain))
-      ondrain();
-  }
-
-  src.on('data', ondata);
-  function ondata(chunk) {
-    debug('ondata');
-    var ret = dest.write(chunk);
-    if (false === ret) {
-      debug('false write response, pause',
-            src._readableState.awaitDrain);
-      src._readableState.awaitDrain++;
-      src.pause();
-    }
-  }
-
-  // if the dest has an error, then stop piping into it.
-  // however, don't suppress the throwing behavior for this.
-  function onerror(er) {
-    debug('onerror', er);
-    unpipe();
-    dest.removeListener('error', onerror);
-    if (EE.listenerCount(dest, 'error') === 0)
-      dest.emit('error', er);
-  }
-  // This is a brutally ugly hack to make sure that our error handler
-  // is attached before any userland ones.  NEVER DO THIS.
-  if (!dest._events || !dest._events.error)
-    dest.on('error', onerror);
-  else if (isArray(dest._events.error))
-    dest._events.error.unshift(onerror);
-  else
-    dest._events.error = [onerror, dest._events.error];
-
-
-
-  // Both close and finish should trigger unpipe, but only once.
-  function onclose() {
-    dest.removeListener('finish', onfinish);
-    unpipe();
-  }
-  dest.once('close', onclose);
-  function onfinish() {
-    debug('onfinish');
-    dest.removeListener('close', onclose);
-    unpipe();
-  }
-  dest.once('finish', onfinish);
-
-  function unpipe() {
-    debug('unpipe');
-    src.unpipe(dest);
-  }
-
-  // tell the dest that it's being piped to
-  dest.emit('pipe', src);
-
-  // start the flow if it hasn't been started already.
-  if (!state.flowing) {
-    debug('pipe resume');
-    src.resume();
-  }
-
-  return dest;
-};
-
-function pipeOnDrain(src) {
-  return function() {
-    var state = src._readableState;
-    debug('pipeOnDrain', state.awaitDrain);
-    if (state.awaitDrain)
-      state.awaitDrain--;
-    if (state.awaitDrain === 0 && EE.listenerCount(src, 'data')) {
-      state.flowing = true;
-      flow(src);
-    }
-  };
-}
-
-
-Readable.prototype.unpipe = function(dest) {
-  var state = this._readableState;
-
-  // if we're not piping anywhere, then do nothing.
-  if (state.pipesCount === 0)
-    return this;
-
-  // just one destination.  most common case.
-  if (state.pipesCount === 1) {
-    // passed in one, but it's not the right one.
-    if (dest && dest !== state.pipes)
-      return this;
-
-    if (!dest)
-      dest = state.pipes;
-
-    // got a match.
-    state.pipes = null;
-    state.pipesCount = 0;
-    state.flowing = false;
-    if (dest)
-      dest.emit('unpipe', this);
-    return this;
-  }
-
-  // slow case. multiple pipe destinations.
-
-  if (!dest) {
-    // remove all.
-    var dests = state.pipes;
-    var len = state.pipesCount;
-    state.pipes = null;
-    state.pipesCount = 0;
-    state.flowing = false;
-
-    for (var i = 0; i < len; i++)
-      dests[i].emit('unpipe', this);
-    return this;
-  }
-
-  // try to find the right one.
-  var i = indexOf(state.pipes, dest);
-  if (i === -1)
-    return this;
-
-  state.pipes.splice(i, 1);
-  state.pipesCount -= 1;
-  if (state.pipesCount === 1)
-    state.pipes = state.pipes[0];
-
-  dest.emit('unpipe', this);
-
-  return this;
-};
-
-// set up data events if they are asked for
-// Ensure readable listeners eventually get something
-Readable.prototype.on = function(ev, fn) {
-  var res = Stream.prototype.on.call(this, ev, fn);
-
-  // If listening to data, and it has not explicitly been paused,
-  // then call resume to start the flow of data on the next tick.
-  if (ev === 'data' && false !== this._readableState.flowing) {
-    this.resume();
-  }
-
-  if (ev === 'readable' && this.readable) {
-    var state = this._readableState;
-    if (!state.readableListening) {
-      state.readableListening = true;
-      state.emittedReadable = false;
-      state.needReadable = true;
-      if (!state.reading) {
-        var self = this;
-        process.nextTick(function() {
-          debug('readable nexttick read 0');
-          self.read(0);
-        });
-      } else if (state.length) {
-        emitReadable(this, state);
-      }
-    }
-  }
-
-  return res;
-};
-Readable.prototype.addListener = Readable.prototype.on;
-
-// pause() and resume() are remnants of the legacy readable stream API
-// If the user uses them, then switch into old mode.
-Readable.prototype.resume = function() {
-  var state = this._readableState;
-  if (!state.flowing) {
-    debug('resume');
-    state.flowing = true;
-    if (!state.reading) {
-      debug('resume read 0');
-      this.read(0);
-    }
-    resume(this, state);
-  }
-  return this;
-};
-
-function resume(stream, state) {
-  if (!state.resumeScheduled) {
-    state.resumeScheduled = true;
-    process.nextTick(function() {
-      resume_(stream, state);
-    });
-  }
-}
-
-function resume_(stream, state) {
-  state.resumeScheduled = false;
-  stream.emit('resume');
-  flow(stream);
-  if (state.flowing && !state.reading)
-    stream.read(0);
-}
-
-Readable.prototype.pause = function() {
-  debug('call pause flowing=%j', this._readableState.flowing);
-  if (false !== this._readableState.flowing) {
-    debug('pause');
-    this._readableState.flowing = false;
-    this.emit('pause');
-  }
-  return this;
-};
-
-function flow(stream) {
-  var state = stream._readableState;
-  debug('flow', state.flowing);
-  if (state.flowing) {
-    do {
-      var chunk = stream.read();
-    } while (null !== chunk && state.flowing);
-  }
-}
-
-// wrap an old-style stream as the async data source.
-// This is *not* part of the readable stream interface.
-// It is an ugly unfortunate mess of history.
-Readable.prototype.wrap = function(stream) {
-  var state = this._readableState;
-  var paused = false;
-
-  var self = this;
-  stream.on('end', function() {
-    debug('wrapped end');
-    if (state.decoder && !state.ended) {
-      var chunk = state.decoder.end();
-      if (chunk && chunk.length)
-        self.push(chunk);
-    }
-
-    self.push(null);
-  });
-
-  stream.on('data', function(chunk) {
-    debug('wrapped data');
-    if (state.decoder)
-      chunk = state.decoder.write(chunk);
-    if (!chunk || !state.objectMode && !chunk.length)
-      return;
-
-    var ret = self.push(chunk);
-    if (!ret) {
-      paused = true;
-      stream.pause();
-    }
-  });
-
-  // proxy all the other methods.
-  // important when wrapping filters and duplexes.
-  for (var i in stream) {
-    if (util.isFunction(stream[i]) && util.isUndefined(this[i])) {
-      this[i] = function(method) { return function() {
-        return stream[method].apply(stream, arguments);
-      }}(i);
-    }
-  }
-
-  // proxy certain important events.
-  var events = ['error', 'close', 'destroy', 'pause', 'resume'];
-  forEach(events, function(ev) {
-    stream.on(ev, self.emit.bind(self, ev));
-  });
-
-  // when we try to consume some more bytes, simply unpause the
-  // underlying stream.
-  self._read = function(n) {
-    debug('wrapped _read', n);
-    if (paused) {
-      paused = false;
-      stream.resume();
-    }
-  };
-
-  return self;
-};
-
-
-
-// exposed for testing purposes only.
-Readable._fromList = fromList;
-
-// Pluck off n bytes from an array of buffers.
-// Length is the combined lengths of all the buffers in the list.
-function fromList(n, state) {
-  var list = state.buffer;
-  var length = state.length;
-  var stringMode = !!state.decoder;
-  var objectMode = !!state.objectMode;
-  var ret;
-
-  // nothing in the list, definitely empty.
-  if (list.length === 0)
-    return null;
-
-  if (length === 0)
-    ret = null;
-  else if (objectMode)
-    ret = list.shift();
-  else if (!n || n >= length) {
-    // read it all, truncate the array.
-    if (stringMode)
-      ret = list.join('');
-    else
-      ret = Buffer.concat(list, length);
-    list.length = 0;
-  } else {
-    // read just some of it.
-    if (n < list[0].length) {
-      // just take a part of the first list item.
-      // slice is the same for buffers and strings.
-      var buf = list[0];
-      ret = buf.slice(0, n);
-      list[0] = buf.slice(n);
-    } else if (n === list[0].length) {
-      // first list is a perfect match
-      ret = list.shift();
-    } else {
-      // complex case.
-      // we have enough to cover it, but it spans past the first buffer.
-      if (stringMode)
-        ret = '';
-      else
-        ret = new Buffer(n);
-
-      var c = 0;
-      for (var i = 0, l = list.length; i < l && c < n; i++) {
-        var buf = list[0];
-        var cpy = Math.min(n - c, buf.length);
-
-        if (stringMode)
-          ret += buf.slice(0, cpy);
-        else
-          buf.copy(ret, c, 0, cpy);
-
-        if (cpy < buf.length)
-          list[0] = buf.slice(cpy);
-        else
-          list.shift();
-
-        c += cpy;
-      }
-    }
-  }
-
-  return ret;
-}
-
-function endReadable(stream) {
-  var state = stream._readableState;
-
-  // If we get here before consuming all the bytes, then that is a
-  // bug in node.  Should never happen.
-  if (state.length > 0)
-    throw new Error('endReadable called on non-empty stream');
-
-  if (!state.endEmitted) {
-    state.ended = true;
-    process.nextTick(function() {
-      // Check that we didn't get one last unshift.
-      if (!state.endEmitted && state.length === 0) {
-        state.endEmitted = true;
-        stream.readable = false;
-        stream.emit('end');
-      }
-    });
-  }
-}
-
-function forEach (xs, f) {
-  for (var i = 0, l = xs.length; i < l; i++) {
-    f(xs[i], i);
-  }
-}
-
-function indexOf (xs, x) {
-  for (var i = 0, l = xs.length; i < l; i++) {
-    if (xs[i] === x) return i;
-  }
-  return -1;
-}
-
-}).call(this,require('_process'))
-},{"./_stream_duplex":40,"_process":120,"buffer":112,"core-util-is":13,"events":114,"inherits":37,"isarray":39,"stream":135,"string_decoder/":46,"util":111}],43:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-// a transform stream is a readable/writable stream where you do
-// something with the data.  Sometimes it's called a "filter",
-// but that's not a great name for it, since that implies a thing where
-// some bits pass through, and others are simply ignored.  (That would
-// be a valid example of a transform, of course.)
-//
-// While the output is causally related to the input, it's not a
-// necessarily symmetric or synchronous transformation.  For example,
-// a zlib stream might take multiple plain-text writes(), and then
-// emit a single compressed chunk some time in the future.
-//
-// Here's how this works:
-//
-// The Transform stream has all the aspects of the readable and writable
-// stream classes.  When you write(chunk), that calls _write(chunk,cb)
-// internally, and returns false if there's a lot of pending writes
-// buffered up.  When you call read(), that calls _read(n) until
-// there's enough pending readable data buffered up.
-//
-// In a transform stream, the written data is placed in a buffer.  When
-// _read(n) is called, it transforms the queued up data, calling the
-// buffered _write cb's as it consumes chunks.  If consuming a single
-// written chunk would result in multiple output chunks, then the first
-// outputted bit calls the readcb, and subsequent chunks just go into
-// the read buffer, and will cause it to emit 'readable' if necessary.
-//
-// This way, back-pressure is actually determined by the reading side,
-// since _read has to be called to start processing a new chunk.  However,
-// a pathological inflate type of transform can cause excessive buffering
-// here.  For example, imagine a stream where every byte of input is
-// interpreted as an integer from 0-255, and then results in that many
-// bytes of output.  Writing the 4 bytes {ff,ff,ff,ff} would result in
-// 1kb of data being output.  In this case, you could write a very small
-// amount of input, and end up with a very large amount of output.  In
-// such a pathological inflating mechanism, there'd be no way to tell
-// the system to stop doing the transform.  A single 4MB write could
-// cause the system to run out of memory.
-//
-// However, even in such a pathological case, only a single written chunk
-// would be consumed, and then the rest would wait (un-transformed) until
-// the results of the previous transformed chunk were consumed.
-
-module.exports = Transform;
-
-var Duplex = require('./_stream_duplex');
-
-/*<replacement>*/
-var util = require('core-util-is');
-util.inherits = require('inherits');
-/*</replacement>*/
-
-util.inherits(Transform, Duplex);
-
-
-function TransformState(options, stream) {
-  this.afterTransform = function(er, data) {
-    return afterTransform(stream, er, data);
-  };
-
-  this.needTransform = false;
-  this.transforming = false;
-  this.writecb = null;
-  this.writechunk = null;
-}
-
-function afterTransform(stream, er, data) {
-  var ts = stream._transformState;
-  ts.transforming = false;
-
-  var cb = ts.writecb;
-
-  if (!cb)
-    return stream.emit('error', new Error('no writecb in Transform class'));
-
-  ts.writechunk = null;
-  ts.writecb = null;
-
-  if (!util.isNullOrUndefined(data))
-    stream.push(data);
-
-  if (cb)
-    cb(er);
-
-  var rs = stream._readableState;
-  rs.reading = false;
-  if (rs.needReadable || rs.length < rs.highWaterMark) {
-    stream._read(rs.highWaterMark);
-  }
-}
-
-
-function Transform(options) {
-  if (!(this instanceof Transform))
-    return new Transform(options);
-
-  Duplex.call(this, options);
-
-  this._transformState = new TransformState(options, this);
-
-  // when the writable side finishes, then flush out anything remaining.
-  var stream = this;
-
-  // start out asking for a readable event once data is transformed.
-  this._readableState.needReadable = true;
-
-  // we have implemented the _read method, and done the other things
-  // that Readable wants before the first _read call, so unset the
-  // sync guard flag.
-  this._readableState.sync = false;
-
-  this.once('prefinish', function() {
-    if (util.isFunction(this._flush))
-      this._flush(function(er) {
-        done(stream, er);
-      });
-    else
-      done(stream);
-  });
-}
-
-Transform.prototype.push = function(chunk, encoding) {
-  this._transformState.needTransform = false;
-  return Duplex.prototype.push.call(this, chunk, encoding);
-};
-
-// This is the part where you do stuff!
-// override this function in implementation classes.
-// 'chunk' is an input chunk.
-//
-// Call `push(newChunk)` to pass along transformed output
-// to the readable side.  You may call 'push' zero or more times.
-//
-// Call `cb(err)` when you are done with this chunk.  If you pass
-// an error, then that'll put the hurt on the whole operation.  If you
-// never call cb(), then you'll never get another chunk.
-Transform.prototype._transform = function(chunk, encoding, cb) {
-  throw new Error('not implemented');
-};
-
-Transform.prototype._write = function(chunk, encoding, cb) {
-  var ts = this._transformState;
-  ts.writecb = cb;
-  ts.writechunk = chunk;
-  ts.writeencoding = encoding;
-  if (!ts.transforming) {
-    var rs = this._readableState;
-    if (ts.needTransform ||
-        rs.needReadable ||
-        rs.length < rs.highWaterMark)
-      this._read(rs.highWaterMark);
-  }
-};
-
-// Doesn't matter what the args are here.
-// _transform does all the work.
-// That we got here means that the readable side wants more data.
-Transform.prototype._read = function(n) {
-  var ts = this._transformState;
-
-  if (!util.isNull(ts.writechunk) && ts.writecb && !ts.transforming) {
-    ts.transforming = true;
-    this._transform(ts.writechunk, ts.writeencoding, ts.afterTransform);
-  } else {
-    // mark that we need a transform, so that any data that comes in
-    // will get processed, now that we've asked for it.
-    ts.needTransform = true;
-  }
-};
-
-
-function done(stream, er) {
-  if (er)
-    return stream.emit('error', er);
-
-  // if there's nothing in the write buffer, then that means
-  // that nothing more will ever be provided
-  var ws = stream._writableState;
-  var ts = stream._transformState;
-
-  if (ws.length)
-    throw new Error('calling transform done when ws.length != 0');
-
-  if (ts.transforming)
-    throw new Error('calling transform done when still transforming');
-
-  return stream.push(null);
-}
-
-},{"./_stream_duplex":40,"core-util-is":13,"inherits":37}],44:[function(require,module,exports){
-(function (process){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-// A bit simpler than readable streams.
-// Implement an async ._write(chunk, cb), and it'll handle all
-// the drain event emission and buffering.
-
-module.exports = Writable;
-
-/*<replacement>*/
-var Buffer = require('buffer').Buffer;
-/*</replacement>*/
-
-Writable.WritableState = WritableState;
-
-
-/*<replacement>*/
-var util = require('core-util-is');
-util.inherits = require('inherits');
-/*</replacement>*/
-
-var Stream = require('stream');
-
-util.inherits(Writable, Stream);
-
-function WriteReq(chunk, encoding, cb) {
-  this.chunk = chunk;
-  this.encoding = encoding;
-  this.callback = cb;
-}
-
-function WritableState(options, stream) {
-  var Duplex = require('./_stream_duplex');
-
-  options = options || {};
-
-  // the point at which write() starts returning false
-  // Note: 0 is a valid value, means that we always return false if
-  // the entire buffer is not flushed immediately on write()
-  var hwm = options.highWaterMark;
-  var defaultHwm = options.objectMode ? 16 : 16 * 1024;
-  this.highWaterMark = (hwm || hwm === 0) ? hwm : defaultHwm;
-
-  // object stream flag to indicate whether or not this stream
-  // contains buffers or objects.
-  this.objectMode = !!options.objectMode;
-
-  if (stream instanceof Duplex)
-    this.objectMode = this.objectMode || !!options.writableObjectMode;
-
-  // cast to ints.
-  this.highWaterMark = ~~this.highWaterMark;
-
-  this.needDrain = false;
-  // at the start of calling end()
-  this.ending = false;
-  // when end() has been called, and returned
-  this.ended = false;
-  // when 'finish' is emitted
-  this.finished = false;
-
-  // should we decode strings into buffers before passing to _write?
-  // this is here so that some node-core streams can optimize string
-  // handling at a lower level.
-  var noDecode = options.decodeStrings === false;
-  this.decodeStrings = !noDecode;
-
-  // Crypto is kind of old and crusty.  Historically, its default string
-  // encoding is 'binary' so we have to make this configurable.
-  // Everything else in the universe uses 'utf8', though.
-  this.defaultEncoding = options.defaultEncoding || 'utf8';
-
-  // not an actual buffer we keep track of, but a measurement
-  // of how much we're waiting to get pushed to some underlying
-  // socket or file.
-  this.length = 0;
-
-  // a flag to see when we're in the middle of a write.
-  this.writing = false;
-
-  // when true all writes will be buffered until .uncork() call
-  this.corked = 0;
-
-  // a flag to be able to tell if the onwrite cb is called immediately,
-  // or on a later tick.  We set this to true at first, because any
-  // actions that shouldn't happen until "later" should generally also
-  // not happen before the first write call.
-  this.sync = true;
-
-  // a flag to know if we're processing previously buffered items, which
-  // may call the _write() callback in the same tick, so that we don't
-  // end up in an overlapped onwrite situation.
-  this.bufferProcessing = false;
-
-  // the callback that's passed to _write(chunk,cb)
-  this.onwrite = function(er) {
-    onwrite(stream, er);
-  };
-
-  // the callback that the user supplies to write(chunk,encoding,cb)
-  this.writecb = null;
-
-  // the amount that is being written when _write is called.
-  this.writelen = 0;
-
-  this.buffer = [];
-
-  // number of pending user-supplied write callbacks
-  // this must be 0 before 'finish' can be emitted
-  this.pendingcb = 0;
-
-  // emit prefinish if the only thing we're waiting for is _write cbs
-  // This is relevant for synchronous Transform streams
-  this.prefinished = false;
-
-  // True if the error was already emitted and should not be thrown again
-  this.errorEmitted = false;
-}
-
-function Writable(options) {
-  var Duplex = require('./_stream_duplex');
-
-  // Writable ctor is applied to Duplexes, though they're not
-  // instanceof Writable, they're instanceof Readable.
-  if (!(this instanceof Writable) && !(this instanceof Duplex))
-    return new Writable(options);
-
-  this._writableState = new WritableState(options, this);
-
-  // legacy.
-  this.writable = true;
-
-  Stream.call(this);
-}
-
-// Otherwise people can pipe Writable streams, which is just wrong.
-Writable.prototype.pipe = function() {
-  this.emit('error', new Error('Cannot pipe. Not readable.'));
-};
-
-
-function writeAfterEnd(stream, state, cb) {
-  var er = new Error('write after end');
-  // TODO: defer error events consistently everywhere, not just the cb
-  stream.emit('error', er);
-  process.nextTick(function() {
-    cb(er);
-  });
-}
-
-// If we get something that is not a buffer, string, null, or undefined,
-// and we're not in objectMode, then that's an error.
-// Otherwise stream chunks are all considered to be of length=1, and the
-// watermarks determine how many objects to keep in the buffer, rather than
-// how many bytes or characters.
-function validChunk(stream, state, chunk, cb) {
-  var valid = true;
-  if (!util.isBuffer(chunk) &&
-      !util.isString(chunk) &&
-      !util.isNullOrUndefined(chunk) &&
-      !state.objectMode) {
-    var er = new TypeError('Invalid non-string/buffer chunk');
-    stream.emit('error', er);
-    process.nextTick(function() {
-      cb(er);
-    });
-    valid = false;
-  }
-  return valid;
-}
-
-Writable.prototype.write = function(chunk, encoding, cb) {
-  var state = this._writableState;
-  var ret = false;
-
-  if (util.isFunction(encoding)) {
-    cb = encoding;
-    encoding = null;
-  }
-
-  if (util.isBuffer(chunk))
-    encoding = 'buffer';
-  else if (!encoding)
-    encoding = state.defaultEncoding;
-
-  if (!util.isFunction(cb))
-    cb = function() {};
-
-  if (state.ended)
-    writeAfterEnd(this, state, cb);
-  else if (validChunk(this, state, chunk, cb)) {
-    state.pendingcb++;
-    ret = writeOrBuffer(this, state, chunk, encoding, cb);
-  }
-
-  return ret;
-};
-
-Writable.prototype.cork = function() {
-  var state = this._writableState;
-
-  state.corked++;
-};
-
-Writable.prototype.uncork = function() {
-  var state = this._writableState;
-
-  if (state.corked) {
-    state.corked--;
-
-    if (!state.writing &&
-        !state.corked &&
-        !state.finished &&
-        !state.bufferProcessing &&
-        state.buffer.length)
-      clearBuffer(this, state);
-  }
-};
-
-function decodeChunk(state, chunk, encoding) {
-  if (!state.objectMode &&
-      state.decodeStrings !== false &&
-      util.isString(chunk)) {
-    chunk = new Buffer(chunk, encoding);
-  }
-  return chunk;
-}
-
-// if we're already writing something, then just put this
-// in the queue, and wait our turn.  Otherwise, call _write
-// If we return false, then we need a drain event, so set that flag.
-function writeOrBuffer(stream, state, chunk, encoding, cb) {
-  chunk = decodeChunk(state, chunk, encoding);
-  if (util.isBuffer(chunk))
-    encoding = 'buffer';
-  var len = state.objectMode ? 1 : chunk.length;
-
-  state.length += len;
-
-  var ret = state.length < state.highWaterMark;
-  // we must ensure that previous needDrain will not be reset to false.
-  if (!ret)
-    state.needDrain = true;
-
-  if (state.writing || state.corked)
-    state.buffer.push(new WriteReq(chunk, encoding, cb));
-  else
-    doWrite(stream, state, false, len, chunk, encoding, cb);
-
-  return ret;
-}
-
-function doWrite(stream, state, writev, len, chunk, encoding, cb) {
-  state.writelen = len;
-  state.writecb = cb;
-  state.writing = true;
-  state.sync = true;
-  if (writev)
-    stream._writev(chunk, state.onwrite);
-  else
-    stream._write(chunk, encoding, state.onwrite);
-  state.sync = false;
-}
-
-function onwriteError(stream, state, sync, er, cb) {
-  if (sync)
-    process.nextTick(function() {
-      state.pendingcb--;
-      cb(er);
-    });
-  else {
-    state.pendingcb--;
-    cb(er);
-  }
-
-  stream._writableState.errorEmitted = true;
-  stream.emit('error', er);
-}
-
-function onwriteStateUpdate(state) {
-  state.writing = false;
-  state.writecb = null;
-  state.length -= state.writelen;
-  state.writelen = 0;
-}
-
-function onwrite(stream, er) {
-  var state = stream._writableState;
-  var sync = state.sync;
-  var cb = state.writecb;
-
-  onwriteStateUpdate(state);
-
-  if (er)
-    onwriteError(stream, state, sync, er, cb);
-  else {
-    // Check if we're actually ready to finish, but don't emit yet
-    var finished = needFinish(stream, state);
-
-    if (!finished &&
-        !state.corked &&
-        !state.bufferProcessing &&
-        state.buffer.length) {
-      clearBuffer(stream, state);
-    }
-
-    if (sync) {
-      process.nextTick(function() {
-        afterWrite(stream, state, finished, cb);
-      });
-    } else {
-      afterWrite(stream, state, finished, cb);
-    }
-  }
-}
-
-function afterWrite(stream, state, finished, cb) {
-  if (!finished)
-    onwriteDrain(stream, state);
-  state.pendingcb--;
-  cb();
-  finishMaybe(stream, state);
-}
-
-// Must force callback to be called on nextTick, so that we don't
-// emit 'drain' before the write() consumer gets the 'false' return
-// value, and has a chance to attach a 'drain' listener.
-function onwriteDrain(stream, state) {
-  if (state.length === 0 && state.needDrain) {
-    state.needDrain = false;
-    stream.emit('drain');
-  }
-}
-
-
-// if there's something in the buffer waiting, then process it
-function clearBuffer(stream, state) {
-  state.bufferProcessing = true;
-
-  if (stream._writev && state.buffer.length > 1) {
-    // Fast case, write everything using _writev()
-    var cbs = [];
-    for (var c = 0; c < state.buffer.length; c++)
-      cbs.push(state.buffer[c].callback);
-
-    // count the one we are adding, as well.
-    // TODO(isaacs) clean this up
-    state.pendingcb++;
-    doWrite(stream, state, true, state.length, state.buffer, '', function(err) {
-      for (var i = 0; i < cbs.length; i++) {
-        state.pendingcb--;
-        cbs[i](err);
-      }
-    });
-
-    // Clear buffer
-    state.buffer = [];
-  } else {
-    // Slow case, write chunks one-by-one
-    for (var c = 0; c < state.buffer.length; c++) {
-      var entry = state.buffer[c];
-      var chunk = entry.chunk;
-      var encoding = entry.encoding;
-      var cb = entry.callback;
-      var len = state.objectMode ? 1 : chunk.length;
-
-      doWrite(stream, state, false, len, chunk, encoding, cb);
-
-      // if we didn't call the onwrite immediately, then
-      // it means that we need to wait until it does.
-      // also, that means that the chunk and cb are currently
-      // being processed, so move the buffer counter past them.
-      if (state.writing) {
-        c++;
-        break;
-      }
-    }
-
-    if (c < state.buffer.length)
-      state.buffer = state.buffer.slice(c);
-    else
-      state.buffer.length = 0;
-  }
-
-  state.bufferProcessing = false;
-}
-
-Writable.prototype._write = function(chunk, encoding, cb) {
-  cb(new Error('not implemented'));
-
-};
-
-Writable.prototype._writev = null;
-
-Writable.prototype.end = function(chunk, encoding, cb) {
-  var state = this._writableState;
-
-  if (util.isFunction(chunk)) {
-    cb = chunk;
-    chunk = null;
-    encoding = null;
-  } else if (util.isFunction(encoding)) {
-    cb = encoding;
-    encoding = null;
-  }
-
-  if (!util.isNullOrUndefined(chunk))
-    this.write(chunk, encoding);
-
-  // .end() fully uncorks
-  if (state.corked) {
-    state.corked = 1;
-    this.uncork();
-  }
-
-  // ignore unnecessary end() calls.
-  if (!state.ending && !state.finished)
-    endWritable(this, state, cb);
-};
-
-
-function needFinish(stream, state) {
-  return (state.ending &&
-          state.length === 0 &&
-          !state.finished &&
-          !state.writing);
-}
-
-function prefinish(stream, state) {
-  if (!state.prefinished) {
-    state.prefinished = true;
-    stream.emit('prefinish');
-  }
-}
-
-function finishMaybe(stream, state) {
-  var need = needFinish(stream, state);
-  if (need) {
-    if (state.pendingcb === 0) {
-      prefinish(stream, state);
-      state.finished = true;
-      stream.emit('finish');
-    } else
-      prefinish(stream, state);
-  }
-  return need;
-}
-
-function endWritable(stream, state, cb) {
-  state.ending = true;
-  finishMaybe(stream, state);
-  if (cb) {
-    if (state.finished)
-      process.nextTick(cb);
-    else
-      stream.once('finish', cb);
-  }
-  state.ended = true;
-}
-
-}).call(this,require('_process'))
-},{"./_stream_duplex":40,"_process":120,"buffer":112,"core-util-is":13,"inherits":37,"stream":135}],45:[function(require,module,exports){
-(function (process){
-exports = module.exports = require('./lib/_stream_readable.js');
-exports.Stream = require('stream');
-exports.Readable = exports;
-exports.Writable = require('./lib/_stream_writable.js');
-exports.Duplex = require('./lib/_stream_duplex.js');
-exports.Transform = require('./lib/_stream_transform.js');
-exports.PassThrough = require('./lib/_stream_passthrough.js');
-if (!process.browser && process.env.READABLE_STREAM === 'disable') {
-  module.exports = require('stream');
-}
-
-}).call(this,require('_process'))
-},{"./lib/_stream_duplex.js":40,"./lib/_stream_passthrough.js":41,"./lib/_stream_readable.js":42,"./lib/_stream_transform.js":43,"./lib/_stream_writable.js":44,"_process":120,"stream":135}],46:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-var Buffer = require('buffer').Buffer;
-
-var isBufferEncoding = Buffer.isEncoding
-  || function(encoding) {
-       switch (encoding && encoding.toLowerCase()) {
-         case 'hex': case 'utf8': case 'utf-8': case 'ascii': case 'binary': case 'base64': case 'ucs2': case 'ucs-2': case 'utf16le': case 'utf-16le': case 'raw': return true;
-         default: return false;
-       }
-     }
-
-
-function assertEncoding(encoding) {
-  if (encoding && !isBufferEncoding(encoding)) {
-    throw new Error('Unknown encoding: ' + encoding);
-  }
-}
-
-// StringDecoder provides an interface for efficiently splitting a series of
-// buffers into a series of JS strings without breaking apart multi-byte
-// characters. CESU-8 is handled as part of the UTF-8 encoding.
-//
-// @TODO Handling all encodings inside a single object makes it very difficult
-// to reason about this code, so it should be split up in the future.
-// @TODO There should be a utf8-strict encoding that rejects invalid UTF-8 code
-// points as used by CESU-8.
-var StringDecoder = exports.StringDecoder = function(encoding) {
-  this.encoding = (encoding || 'utf8').toLowerCase().replace(/[-_]/, '');
-  assertEncoding(encoding);
-  switch (this.encoding) {
-    case 'utf8':
-      // CESU-8 represents each of Surrogate Pair by 3-bytes
-      this.surrogateSize = 3;
-      break;
-    case 'ucs2':
-    case 'utf16le':
-      // UTF-16 represents each of Surrogate Pair by 2-bytes
-      this.surrogateSize = 2;
-      this.detectIncompleteChar = utf16DetectIncompleteChar;
-      break;
-    case 'base64':
-      // Base-64 stores 3 bytes in 4 chars, and pads the remainder.
-      this.surrogateSize = 3;
-      this.detectIncompleteChar = base64DetectIncompleteChar;
-      break;
-    default:
-      this.write = passThroughWrite;
-      return;
-  }
-
-  // Enough space to store all bytes of a single character. UTF-8 needs 4
-  // bytes, but CESU-8 may require up to 6 (3 bytes per surrogate).
-  this.charBuffer = new Buffer(6);
-  // Number of bytes received for the current incomplete multi-byte character.
-  this.charReceived = 0;
-  // Number of bytes expected for the current incomplete multi-byte character.
-  this.charLength = 0;
-};
-
-
-// write decodes the given buffer and returns it as JS string that is
-// guaranteed to not contain any partial multi-byte characters. Any partial
-// character found at the end of the buffer is buffered up, and will be
-// returned when calling write again with the remaining bytes.
-//
-// Note: Converting a Buffer containing an orphan surrogate to a String
-// currently works, but converting a String to a Buffer (via `new Buffer`, or
-// Buffer#write) will replace incomplete surrogates with the unicode
-// replacement character. See https://codereview.chromium.org/121173009/ .
-StringDecoder.prototype.write = function(buffer) {
-  var charStr = '';
-  // if our last write ended with an incomplete multibyte character
-  while (this.charLength) {
-    // determine how many remaining bytes this buffer has to offer for this char
-    var available = (buffer.length >= this.charLength - this.charReceived) ?
-        this.charLength - this.charReceived :
-        buffer.length;
-
-    // add the new bytes to the char buffer
-    buffer.copy(this.charBuffer, this.charReceived, 0, available);
-    this.charReceived += available;
-
-    if (this.charReceived < this.charLength) {
-      // still not enough chars in this buffer? wait for more ...
-      return '';
-    }
-
-    // remove bytes belonging to the current character from the buffer
-    buffer = buffer.slice(available, buffer.length);
-
-    // get the character that was split
-    charStr = this.charBuffer.slice(0, this.charLength).toString(this.encoding);
-
-    // CESU-8: lead surrogate (D800-DBFF) is also the incomplete character
-    var charCode = charStr.charCodeAt(charStr.length - 1);
-    if (charCode >= 0xD800 && charCode <= 0xDBFF) {
-      this.charLength += this.surrogateSize;
-      charStr = '';
-      continue;
-    }
-    this.charReceived = this.charLength = 0;
-
-    // if there are no more bytes in this buffer, just emit our char
-    if (buffer.length === 0) {
-      return charStr;
-    }
-    break;
-  }
-
-  // determine and set charLength / charReceived
-  this.detectIncompleteChar(buffer);
-
-  var end = buffer.length;
-  if (this.charLength) {
-    // buffer the incomplete character bytes we got
-    buffer.copy(this.charBuffer, 0, buffer.length - this.charReceived, end);
-    end -= this.charReceived;
-  }
-
-  charStr += buffer.toString(this.encoding, 0, end);
-
-  var end = charStr.length - 1;
-  var charCode = charStr.charCodeAt(end);
-  // CESU-8: lead surrogate (D800-DBFF) is also the incomplete character
-  if (charCode >= 0xD800 && charCode <= 0xDBFF) {
-    var size = this.surrogateSize;
-    this.charLength += size;
-    this.charReceived += size;
-    this.charBuffer.copy(this.charBuffer, size, 0, size);
-    buffer.copy(this.charBuffer, 0, 0, size);
-    return charStr.substring(0, end);
-  }
-
-  // or just emit the charStr
-  return charStr;
-};
-
-// detectIncompleteChar determines if there is an incomplete UTF-8 character at
-// the end of the given buffer. If so, it sets this.charLength to the byte
-// length that character, and sets this.charReceived to the number of bytes
-// that are available for this character.
-StringDecoder.prototype.detectIncompleteChar = function(buffer) {
-  // determine how many bytes we have to check at the end of this buffer
-  var i = (buffer.length >= 3) ? 3 : buffer.length;
-
-  // Figure out if one of the last i bytes of our buffer announces an
-  // incomplete char.
-  for (; i > 0; i--) {
-    var c = buffer[buffer.length - i];
-
-    // See http://en.wikipedia.org/wiki/UTF-8#Description
-
-    // 110XXXXX
-    if (i == 1 && c >> 5 == 0x06) {
-      this.charLength = 2;
-      break;
-    }
-
-    // 1110XXXX
-    if (i <= 2 && c >> 4 == 0x0E) {
-      this.charLength = 3;
-      break;
-    }
-
-    // 11110XXX
-    if (i <= 3 && c >> 3 == 0x1E) {
-      this.charLength = 4;
-      break;
-    }
-  }
-  this.charReceived = i;
-};
-
-StringDecoder.prototype.end = function(buffer) {
-  var res = '';
-  if (buffer && buffer.length)
-    res = this.write(buffer);
-
-  if (this.charReceived) {
-    var cr = this.charReceived;
-    var buf = this.charBuffer;
-    var enc = this.encoding;
-    res += buf.slice(0, cr).toString(enc);
-  }
-
-  return res;
-};
-
-function passThroughWrite(buffer) {
-  return buffer.toString(this.encoding);
-}
-
-function utf16DetectIncompleteChar(buffer) {
-  this.charReceived = buffer.length % 2;
-  this.charLength = this.charReceived ? 2 : 0;
-}
-
-function base64DetectIncompleteChar(buffer) {
-  this.charReceived = buffer.length % 3;
-  this.charLength = this.charReceived ? 3 : 0;
-}
-
-},{"buffer":112}],47:[function(require,module,exports){
-/**
- * @file Detect whether or not an object is an ArrayBuffer.
- * @version 1.7.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module is-array-buffer-x
- */
-
-/* global ArrayBuffer */
-
-'use strict';
-
-var attempt = require('attempt-x');
-var isObjectLike = require('is-object-like-x');
-var hasABuf = typeof ArrayBuffer === 'function';
-var bLength = false;
-var toStringTag;
-var aBufTag;
-
-if (hasABuf) {
-  if (require('has-to-string-tag-x')) {
-    var getOwnPropertyDescriptor = require('object-get-own-property-descriptor-x');
-    var descriptor = getOwnPropertyDescriptor(ArrayBuffer.prototype, 'byteLength');
-    if (descriptor && typeof descriptor.get === 'function') {
-      var res = attempt(function () {
-        return new ArrayBuffer(4);
-      });
-
-      if (res.threw === false && isObjectLike(res.value)) {
-        res = attempt.call(res.value, descriptor.get);
-        bLength = res.threw === false && typeof res.value === 'number' && descriptor.get;
-      }
-    }
-  }
-
-  if (bLength === false) {
-    toStringTag = require('to-string-tag-x');
-    aBufTag = '[object ArrayBuffer]';
-  }
-}
-
-/**
- * Determine if an `object` is an `ArrayBuffer`.
- *
- * @param {*} object - The object to test.
- * @returns {boolean} `true` if the `object` is an `ArrayBuffer`,
- *  else false`.
- * @example
- * var isArrayBuffer = require('is-array-buffer-x');
- *
- * isArrayBuffer(new ArrayBuffer(4)); // true
- * isArrayBuffer(null); // false
- * isArrayBuffer([]); // false
- */
-module.exports = function isArrayBuffer(object) {
-  if (hasABuf === false || isObjectLike(object) === false) {
-    return false;
-  }
-
-  if (bLength === false) {
-    return toStringTag(object) === aBufTag;
-  }
-
-  var result = attempt.call(object, bLength);
-  return result.threw === false && typeof result.value === 'number';
-};
-
-},{"attempt-x":4,"has-to-string-tag-x":34,"is-object-like-x":55,"object-get-own-property-descriptor-x":67,"to-string-tag-x":102}],48:[function(require,module,exports){
-'use strict';
-
-var getDay = Date.prototype.getDay;
-var tryDateObject = function tryDateObject(value) {
-	try {
-		getDay.call(value);
-		return true;
-	} catch (e) {
-		return false;
-	}
-};
-
-var toStr = Object.prototype.toString;
-var dateClass = '[object Date]';
-var hasToStringTag = typeof Symbol === 'function' && typeof Symbol.toStringTag === 'symbol';
-
-module.exports = function isDateObject(value) {
-	if (typeof value !== 'object' || value === null) { return false; }
-	return hasToStringTag ? tryDateObject(value) : toStr.call(value) === dateClass;
-};
-
-},{}],49:[function(require,module,exports){
-/**
- * @file Test if a given value is falsey.
- * @version 1.0.1
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module is-falsey-x
- */
-
-'use strict';
-
-var toBoolean = require('to-boolean-x');
-
-/**
- * This method tests if a given value is falsey.
- *
- * @param {*} value - The value to test.
- * @returns {boolean} `true` if the value is falsey: otherwise `false`.
- * @example
- * var isFalsey = require('is-falsey-x');
- *
- * isFalsey(); // true
- * isFalsey(0); // true
- * isFalsey(''); // true
- * isFalsey(false); // true
- * isFalsey(null); // true
- *
- * isFalsey(true); // false
- * isFalsey([]); // false
- * isFalsey(1); // false
- * isFalsey(function () {}); // false
- */
-module.exports = function isFalsey(value) {
-  return toBoolean(value) === false;
-};
-
-},{"to-boolean-x":95}],50:[function(require,module,exports){
-/**
- * @file ES6-compliant shim for Number.isFinite.
- * @see {@link http://www.ecma-international.org/ecma-262/6.0/#sec-number.isfinite|20.1.2.2 Number.isFinite ( number )}
- * @version 3.0.2
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module is-finite-x
- */
-
-'use strict';
-
-var numberIsNaN = require('is-nan-x');
-var INFINITY = require('infinity-x');
-
-/**
- * This method determines whether the passed value is a finite number.
- *
- * @param {*} number - The value to be tested for finiteness.
- * @returns {boolean} A Boolean indicating whether or not the given value is a finite number.
- * @example
- * var numIsFinite = require('is-finite-x');
- *
- * numIsFinite(Infinity);  // false
- * numIsFinite(NaN);       // false
- * numIsFinite(-Infinity); // false
- *
- * numIsFinite(0);         // true
- * numIsFinite(2e64);      // true
- *
- * numIsFinite('0');       // false, would've been true with
- *                         // global isFinite('0')
- * numIsFinite(null);      // false, would've been true with
- */
-module.exports = function isFinite(number) {
-  return typeof number === 'number' && numberIsNaN(number) === false && number !== INFINITY && number !== -INFINITY;
-};
-
-},{"infinity-x":36,"is-nan-x":53}],51:[function(require,module,exports){
-/**
- * @file Determine whether a given value is a function object.
- * @version 3.3.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module is-function-x
- */
-
-'use strict';
-
-var attempt = require('attempt-x');
-var fToString = Function.prototype.toString;
-var toBoolean = require('to-boolean-x');
-var isFalsey = require('is-falsey-x');
-var toStringTag = require('to-string-tag-x');
-var hasToStringTag = require('has-to-string-tag-x');
-var isPrimitive = require('is-primitive');
-var normalise = require('normalize-space-x').normalizeSpace;
-var deComment = require('replace-comments-x');
-var funcTag = '[object Function]';
-var genTag = '[object GeneratorFunction]';
-var asyncTag = '[object AsyncFunction]';
-var ctrRx = /^class /;
-var test = ctrRx.test;
-
-var hasNativeClass = attempt(function () {
-  // eslint-disable-next-line no-new-func
-  return Function('"use strict"; return class My {};')();
-}).threw === false;
-
-var testClassstring = function _testClassstring(value) {
-  return test.call(ctrRx, normalise(deComment(fToString.call(value), ' ')));
-};
-
-var isES6ClassFn = function isES6ClassFunc(value) {
-  var result = attempt(testClassstring, value);
-
-  return result.threw === false && result.value;
-};
-
-/**
- * Checks if `value` is classified as a `Function` object.
- *
- * @private
- * @param {*} value - The value to check.
- * @param {boolean} allowClass - Whether to filter ES6 classes.
- * @returns {boolean} Returns `true` if `value` is correctly classified,
- * else `false`.
- */
-var tryFuncToString = function funcToString(value, allowClass) {
-  if (hasNativeClass && allowClass === false && isES6ClassFn(value)) {
-    return false;
-  }
-
-  return attempt.call(value, fToString).threw === false;
-};
-
-/**
- * Checks if `value` is classified as a `Function` object.
- *
- * @param {*} value - The value to check.
- * @param {boolean} [allowClass=false] - Whether to filter ES6 classes.
- * @returns {boolean} Returns `true` if `value` is correctly classified,
- * else `false`.
- * @example
- * var isFunction = require('is-function-x');
- *
- * isFunction(); // false
- * isFunction(Number.MIN_VALUE); // false
- * isFunction('abc'); // false
- * isFunction(true); // false
- * isFunction({ name: 'abc' }); // false
- * isFunction(function () {}); // true
- * isFunction(new Function ()); // true
- * isFunction(function* test1() {}); // true
- * isFunction(function test2(a, b) {}); // true
- * isFunction(async function test3() {}); // true
- * isFunction(class Test {}); // false
- * isFunction(class Test {}, true); // true
- * isFunction((x, y) => {return this;}); // true
- */
-module.exports = function isFunction(value) {
-  if (isPrimitive(value)) {
-    return false;
-  }
-
-  if (hasToStringTag) {
-    return tryFuncToString(value, toBoolean(arguments[1]));
-  }
-
-  if (hasNativeClass && isFalsey(arguments[1]) && isES6ClassFn(value)) {
-    return false;
-  }
-
-  var strTag = toStringTag(value);
-  return strTag === funcTag || strTag === genTag || strTag === asyncTag;
-};
-
-},{"attempt-x":4,"has-to-string-tag-x":34,"is-falsey-x":49,"is-primitive":56,"normalize-space-x":66,"replace-comments-x":72,"to-boolean-x":95,"to-string-tag-x":102}],52:[function(require,module,exports){
-/**
- * @file Determine whether the passed value is a zero based index.
- * @version 1.1.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module is-index-x
- */
-
-'use strict';
-
-var safeToString = require('to-string-symbols-supported-x');
-var toInteger = require('to-integer-x').toInteger2018;
-var toNumber = require('to-number-x').toNumber2018;
-var mathClamp = require('math-clamp-x');
-var MAX_SAFE_INTEGER = require('max-safe-integer');
-var reIsUint = /^(?:0|[1-9]\d*)$/;
-var rxTest = reIsUint.test;
-
-/**
- * This method determines whether the passed value is a zero based index.
- * JavaScript arrays are zero-indexed: the first element of an array is at
- * index 0, and the last element is at the index equal to the value of the
- * array's length property minus 1.
- *
- * @param {number|string} value - The value to be tested for being a zero based index.
- * @param {number} [length=MAX_SAFE_INTEGER] - The length that sets the upper bound.
- * @returns {boolean} A Boolean indicating whether or not the given value is a
- * zero based index within bounds.
- * @example
- * var isIndex = require('is-index-x');
- *
- * isIndex(0);                    // true
- * isIndex(1);                    // true
- * isIndex('10');                 // true
- *
- * isIndex(-100000);              // false
- * isIndex(Math.pow(2, 53));      // false
- * isIndex(0.1);                  // false
- * isIndex(Math.PI);              // false
- * isIndex(NaN);                  // false
- * isIndex(Infinity);             // false
- * isIndex(-Infinity);            // false
- * isIndex(true);                 // false
- * isIndex(false);                // false
- * isIndex([1]);                  // false
- * isIndex(10, 10);               // false
- */
-module.exports = function isIndex(value) {
-  var string = safeToString(value);
-  if (rxTest.call(reIsUint, string) === false) {
-    return false;
-  }
-
-  var number = toNumber(string);
-  if (arguments.length > 1) {
-    return number < mathClamp(toInteger(arguments[1]), MAX_SAFE_INTEGER);
-  }
-
-  return number < MAX_SAFE_INTEGER;
-};
-
-},{"math-clamp-x":60,"max-safe-integer":62,"to-integer-x":96,"to-number-x":97,"to-string-symbols-supported-x":101}],53:[function(require,module,exports){
-/**
- * @file ES6-compliant shim for Number.isNaN - the global isNaN returns false positives.
- * @version 1.0.1
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module is-nan-x
- */
-
-'use strict';
-
-/**
- * This method determines whether the passed value is NaN and its type is
- * `Number`. It is a more robust version of the original, global isNaN().
- *
- * @param {*} value - The value to be tested for NaN.
- * @returns {boolean} `true` if the given value is NaN and its type is Number;
- *  otherwise, `false`.
- * @example
- * var numberIsNaN = require('is-nan-x');
- *
- * numberIsNaN(NaN);        // true
- * numberIsNaN(Number.NaN); // true
- * numberIsNaN(0 / 0);      // true
- *
- * // e.g. these would have been true with global isNaN()
- * numberIsNaN('NaN');      // false
- * numberIsNaN(undefined);  // false
- * numberIsNaN({});         // false
- * numberIsNaN('blabla');   // false
- *
- * // These all return false
- * numberIsNaN(true);
- * numberIsNaN(null);
- * numberIsNaN(37);
- * numberIsNaN('37');
- * numberIsNaN('37.37');
- * numberIsNaN('');
- * numberIsNaN(' ');
- */
-module.exports = function isNaN(value) {
-  return value !== value;
-};
-
-},{}],54:[function(require,module,exports){
-/**
- * @file Checks if `value` is `null` or `undefined`.
- * @version 1.4.1
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module is-nil-x
- */
-
-'use strict';
-
-var isUndefined = require('validate.io-undefined');
-var isNull = require('lodash.isnull');
-
-/**
- * Checks if `value` is `null` or `undefined`.
- *
- * @param {*} value - The value to check.
- * @returns {boolean} Returns `true` if `value` is nullish, else `false`.
- * @example
- * var isNil = require('is-nil-x');
- *
- * isNil(null); // => true
- * isNil(void 0); // => true
- * isNil(NaN); // => false
- */
-module.exports = function isNil(value) {
-  return isNull(value) || isUndefined(value);
-};
-
-},{"lodash.isnull":59,"validate.io-undefined":107}],55:[function(require,module,exports){
-/**
- * @file Determine if a value is object like.
- * @version 1.6.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module is-object-like-x
- */
-
-'use strict';
-
-var isFunction = require('is-function-x');
-var isPrimitive = require('is-primitive');
-
-/**
- * Checks if `value` is object-like. A value is object-like if it's not a
- * primitive and not a function.
- *
- * @param {*} value - The value to check.
- * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
- * @example
- * var isObjectLike = require('is-object-like-x');
- *
- * isObjectLike({});
- * // => true
- *
- * isObjectLike([1, 2, 3]);
- * // => true
- *
- * isObjectLike(_.noop);
- * // => false
- *
- * isObjectLike(null);
- * // => false
- */
-module.exports = function isObjectLike(value) {
-  return isPrimitive(value) === false && isFunction(value, true) === false;
-};
-
-},{"is-function-x":51,"is-primitive":56}],56:[function(require,module,exports){
-/*!
- * is-primitive <https://github.com/jonschlinkert/is-primitive>
- *
- * Copyright (c) 2014-2015, Jon Schlinkert.
- * Licensed under the MIT License.
- */
-
-'use strict';
-
-// see http://jsperf.com/testing-value-is-primitive/7
-module.exports = function isPrimitive(value) {
-  return value == null || (typeof value !== 'function' && typeof value !== 'object');
-};
-
-},{}],57:[function(require,module,exports){
-'use strict';
-
-var strValue = String.prototype.valueOf;
-var tryStringObject = function tryStringObject(value) {
-	try {
-		strValue.call(value);
-		return true;
-	} catch (e) {
-		return false;
-	}
-};
-var toStr = Object.prototype.toString;
-var strClass = '[object String]';
-var hasToStringTag = typeof Symbol === 'function' && typeof Symbol.toStringTag === 'symbol';
-
-module.exports = function isString(value) {
-	if (typeof value === 'string') { return true; }
-	if (typeof value !== 'object') { return false; }
-	return hasToStringTag ? tryStringObject(value) : toStr.call(value) === strClass;
-};
-
-},{}],58:[function(require,module,exports){
-'use strict';
-
-var toStr = Object.prototype.toString;
-var hasSymbols = typeof Symbol === 'function' && typeof Symbol() === 'symbol';
-
-if (hasSymbols) {
-	var symToStr = Symbol.prototype.toString;
-	var symStringRegex = /^Symbol\(.*\)$/;
-	var isSymbolObject = function isSymbolObject(value) {
-		if (typeof value.valueOf() !== 'symbol') { return false; }
-		return symStringRegex.test(symToStr.call(value));
-	};
-	module.exports = function isSymbol(value) {
-		if (typeof value === 'symbol') { return true; }
-		if (toStr.call(value) !== '[object Symbol]') { return false; }
-		try {
-			return isSymbolObject(value);
-		} catch (e) {
-			return false;
-		}
-	};
-} else {
-	module.exports = function isSymbol(value) {
-		// this environment does not support Symbols.
-		return false;
-	};
-}
-
-},{}],59:[function(require,module,exports){
-/**
- * lodash 3.0.0 (Custom Build) <https://lodash.com/>
- * Build: `lodash modern modularize exports="npm" -o ./`
- * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.7.0 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <https://lodash.com/license>
- */
-
-/**
- * Checks if `value` is `null`.
- *
- * @static
- * @memberOf _
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is `null`, else `false`.
- * @example
- *
- * _.isNull(null);
- * // => true
- *
- * _.isNull(void 0);
- * // => false
- */
-function isNull(value) {
-  return value === null;
-}
-
-module.exports = isNull;
-
-},{}],60:[function(require,module,exports){
-/**
- * @file Clamp a number to limits.
- * @version 1.2.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module math-clamp-x
- */
-
-'use strict';
-
-var toNumber = require('to-number-x').toNumber2018;
-
-/**
- * This method clamp a number to min and max limits inclusive.
- *
- * @param {number} value - The number to be clamped.
- * @param {number} [min=0] - The minimum number.
- * @param {number} max - The maximum number.
- * @throws {RangeError} If min > max.
- * @return {number} The clamped number.
- * @example
- * var mathClamp = require('math-clamp-x');
- */
-module.exports = function clamp(value) {
-  var number = toNumber(value);
-  var argsLength = arguments.length;
-  if (argsLength < 2) {
-    return number;
-  }
-
-  var min = toNumber(arguments[1]);
-  var max;
-  if (argsLength < 3) {
-    max = min;
-    min = 0;
-  } else {
-    max = toNumber(arguments[2]);
-  }
-
-  if (min > max) {
-    throw new RangeError('"min" must be less than "max"');
-  }
-
-  if (number < min) {
-    return min;
-  }
-
-  if (number > max) {
-    return max;
-  }
-
-  return number;
-};
-
-},{"to-number-x":97}],61:[function(require,module,exports){
-/**
- * @file Shim for Math.sign.
- * @see {@link http://www.ecma-international.org/ecma-262/6.0/#sec-math.sign|20.2.2.29 Math.sign(x)}
- * @version 3.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module math-sign-x
- */
-
-'use strict';
-
-var libToNumber = require('to-number-x');
-var toNumber2016 = libToNumber.toNumber2016;
-var toNumber2018 = libToNumber.toNumber2018;
-var numberIsNaN = require('is-nan-x');
-
-var $sign2016 = function sign2016(x) {
-  var n = toNumber2016(x);
-  if (n === 0 || numberIsNaN(n)) {
-    return n;
-  }
-
-  return n > 0 ? 1 : -1;
-};
-
-var $sign2018 = function sign2018(x) {
-  var n = toNumber2018(x);
-  if (n === 0 || numberIsNaN(n)) {
-    return n;
-  }
-
-  return n > 0 ? 1 : -1;
-};
-
-module.exports = {
-  /**
-   * Reference to sign2018.
-   */
-  sign: $sign2018,
-
-  /**
-   * This method returns the sign of a number, indicating whether the number is positive,
-   * negative or zero. (ES2016)
-   *
-   * @param {*} x - A number.
-   * @returns {number} A number representing the sign of the given argument. If the argument
-   * is a positive number, negative number, positive zero or negative zero, the function will
-   * return 1, -1, 0 or -0 respectively. Otherwise, NaN is returned.
-   * @example
-   * var mathSign = require('math-sign-x').sign2016;
-   *
-   * mathSign(3);     //  1
-   * mathSign(-3);    // -1
-   * mathSign('-3');  // -1
-   * mathSign(0);     //  0
-   * mathSign(-0);    // -0
-   * mathSign(NaN);   // NaN
-   * mathSign('foo'); // NaN
-   * mathSign();      // NaN
-   */
-  sign2016: $sign2016,
-
-  /**
-   * This method returns the sign of a number, indicating whether the number is positive,
-   * negative or zero. (ES2018)
-   *
-   * @param {*} x - A number.
-   * @returns {number} A number representing the sign of the given argument. If the argument
-   * is a positive number, negative number, positive zero or negative zero, the function will
-   * return 1, -1, 0 or -0 respectively. Otherwise, NaN is returned.
-   * @example
-   * var mathSign = require('math-sign-x').sign2018;
-   *
-   * mathSign(3);     //  1
-   * mathSign(-3);    // -1
-   * mathSign('-3');  // -1
-   * mathSign(0);     //  0
-   * mathSign(-0);    // -0
-   * mathSign(NaN);   // NaN
-   * mathSign('foo'); // NaN
-   * mathSign();      // NaN
-   */
-  sign2018: $sign2018
-};
-
-},{"is-nan-x":53,"to-number-x":97}],62:[function(require,module,exports){
-'use strict';
-module.exports = 9007199254740991;
-
-},{}],63:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 (function (process){
 'use strict';
 var Readable = require('stream').Readable;
@@ -7616,7 +4491,7 @@ MicrophoneStream.toRaw = function toFloat32(chunk) {
 module.exports = MicrophoneStream;
 
 }).call(this,require('_process'))
-},{"_process":120,"buffer-from":8,"stream":135,"util":140}],64:[function(require,module,exports){
+},{"_process":65,"buffer-from":7,"stream":80,"util":85}],31:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -7770,433 +4645,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],65:[function(require,module,exports){
-/**
- * @file The constant NaN derived mathematically by 0 / 0.
- * @version 1.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module nan-x
- */
-
-'use strict';
-
-/**
- * The constant NaN derived mathematically by 0 / 0.
- *
- * @type number
- * @example
- * var NAN = require('nan-x');
- *
- * NAN !== NAN; // true
- * NAN === NAN; // false
- */
-module.exports = 0 / 0;
-
-},{}],66:[function(require,module,exports){
-/**
- * @file Trims and replaces sequences of whitespace characters by a single space.
- * @version 3.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module normalize-space-x
- */
-
-'use strict';
-
-var libTrim = require('trim-x');
-var trim2016 = libTrim.trim2016;
-var trim2018 = libTrim.trim2018;
-var Rx = require('cached-constructors-x').RegExp;
-var libWhiteSpace = require('white-space-x');
-var reNormalize2016 = new Rx('[' + libWhiteSpace.string2016 + ']+', 'g');
-var reNormalize2018 = new Rx('[' + libWhiteSpace.string2018 + ']+', 'g');
-var replace = ''.replace;
-
-var $normalizeSpace2016 = function normalizeSpace2016(string) {
-  return replace.call(trim2016(string), reNormalize2016, ' ');
-};
-
-var $normalizeSpace2018 = function normalizeSpace2018(string) {
-  return replace.call(trim2018(string), reNormalize2018, ' ');
-};
-
-module.exports = {
-  /**
-   * Reference to normalizeSpace2018.
-   */
-  normalizeSpace: $normalizeSpace2018,
-
-  /**
-   * This method strips leading and trailing white-space from a string,
-   * replaces sequences of whitespace characters by a single space,
-   * and returns the resulting string. (ES2016)
-   *
-   * @param {string} string - The string to be normalized.
-   * @throws {TypeError} If string is null or undefined or not coercible.
-   * @returns {string} The normalized string.
-   * @example
-   * var normalizeSpace = require('normalize-space-x');
-   *
-   * normalizeSpace(' \t\na \t\nb \t\n') === 'a b'; // true
-   */
-  normalizeSpace2016: $normalizeSpace2016,
-
-  /**
-   * This method strips leading and trailing white-space from a string,
-   * replaces sequences of whitespace characters by a single space,
-   * and returns the resulting string. (ES2018)
-   *
-   * @param {string} string - The string to be normalized.
-   * @throws {TypeError} If string is null or undefined or not coercible.
-   * @returns {string} The normalized string.
-   * @example
-   * var normalizeSpace = require('normalize-space-x');
-   *
-   * normalizeSpace(' \t\na \t\nb \t\n') === 'a b'; // true
-   */
-  normalizeSpace2018: $normalizeSpace2018
-};
-
-},{"cached-constructors-x":9,"trim-x":106,"white-space-x":108}],67:[function(require,module,exports){
-/**
- * @file Sham for ES6 Object.getOwnPropertyDescriptor
- * @version 3.2.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module object-get-own-property-descriptor-x
- */
-
-'use strict';
-
-var toObject = require('to-object-x');
-var toPropertyKey = require('to-property-key-x');
-var isFalsey = require('is-falsey-x');
-var attempt = require('attempt-x');
-
-var nativeGOPD = typeof Object.getOwnPropertyDescriptor === 'function' && Object.getOwnPropertyDescriptor;
-var getOPDFallback1;
-var getOPDFallback2;
-
-// ES5 15.2.3.3
-// http://es5.github.com/#x15.2.3.3
-
-var doesGOPDWork = function (object, prop) {
-  object[toPropertyKey(prop)] = 0;
-  var testResult = attempt(nativeGOPD, object, prop);
-  return testResult.threw === false && testResult.value.value === 0;
-};
-
-// check whether getOwnPropertyDescriptor works if it's given. Otherwise, shim partially.
-var $getOwnPropertyDescriptor;
-if (nativeGOPD) {
-  var doc = typeof document !== 'undefined' && document;
-  var getOPDWorksOnDom = doc ? doesGOPDWork(doc.createElement('div'), 'sentinel') : true;
-  if (getOPDWorksOnDom) {
-    var res = attempt(nativeGOPD, Object('abc'), 1);
-    var worksWithStr = res.threw === false && res.value && res.value.value === 'b';
-    if (worksWithStr) {
-      var getOPDWorksOnObject = doesGOPDWork({}, 'sentinel');
-      if (getOPDWorksOnObject) {
-        var worksWithPrim = attempt(nativeGOPD, 42, 'name').threw === false;
-        var worksWithObjSym = require('has-symbol-support-x') && doesGOPDWork({}, Object(Symbol('')));
-        // eslint-disable-next-line max-depth
-        if (worksWithObjSym) {
-          // eslint-disable-next-line max-depth
-          if (worksWithPrim) {
-            $getOwnPropertyDescriptor = nativeGOPD;
-          } else {
-            $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(object, property) {
-              return nativeGOPD(toObject(object), property);
-            };
-          }
-        } else if (worksWithPrim) {
-          $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(object, property) {
-            return nativeGOPD(object, toPropertyKey(property));
-          };
-        } else {
-          $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(object, property) {
-            return nativeGOPD(toObject(object), toPropertyKey(property));
-          };
-        }
-      } else {
-        getOPDFallback1 = nativeGOPD;
-      }
-    } else {
-      getOPDFallback2 = nativeGOPD;
-    }
-  }
-}
-
-if (isFalsey($getOwnPropertyDescriptor) || getOPDFallback1 || getOPDFallback2) {
-  var owns = require('has-own-property-x');
-  var isPrimitive = require('is-primitive');
-  var isString = require('is-string');
-  var isIndex = require('is-index-x');
-  var propertyIsEnumerable = require('property-is-enumerable-x');
-  var prototypeOfObject = Object.prototype;
-
-  // If JS engine supports accessors creating shortcuts.
-  var lookupGetter;
-  var lookupSetter;
-  var supportsAccessors = owns(prototypeOfObject, '__defineGetter__');
-  if (supportsAccessors) {
-    // eslint-disable-next-line no-underscore-dangle
-    var lg = prototypeOfObject.__lookupGetter__;
-    // eslint-disable-next-line no-underscore-dangle
-    var ls = prototypeOfObject.__lookupSetter__;
-    lookupGetter = function (object, property) {
-      return lg.call(object, property);
-    };
-
-    lookupSetter = function (object, property) {
-      return ls.call(object, property);
-    };
-  }
-
-  $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(object, property) {
-    var obj = toObject(object);
-    var propKey = toPropertyKey(property);
-
-    var result;
-    // make a valiant attempt to use the real getOwnPropertyDescriptor for I8's DOM elements.
-    if (getOPDFallback1) {
-      result = attempt.call(Object, getOPDFallback1, obj, propKey);
-      if (result.threw === false) {
-        return result.value;
-      }
-      // try the shim if the real one doesn't work
-    }
-
-    var isStringIndex = isString(obj) && isIndex(propKey, obj.length);
-    if (getOPDFallback2 && isStringIndex === false) {
-      result = attempt.call(Object, getOPDFallback2, obj, propKey);
-      if (result.threw === false) {
-        return result.value;
-      }
-      // try the shim if the real one doesn't work
-    }
-
-    var descriptor;
-    // If object does not owns property return undefined immediately.
-    if (isStringIndex === false && owns(obj, propKey) === false) {
-      return descriptor;
-    }
-
-    // If object has a property then it's for sure `configurable`, and
-    // probably `enumerable`. Detect enumerability though.
-    descriptor = {
-      configurable: isPrimitive(object) === false && isStringIndex === false,
-      enumerable: propertyIsEnumerable(obj, propKey)
-    };
-
-    // If JS engine supports accessor properties then property may be a
-    // getter or setter.
-    if (supportsAccessors) {
-      // Unfortunately `__lookupGetter__` will return a getter even
-      // if object has own non getter property along with a same named
-      // inherited getter. To avoid misbehavior we temporary remove
-      // `__proto__` so that `__lookupGetter__` will return getter only
-      // if it's owned by an object.
-      // eslint-disable-next-line no-proto
-      var prototype = obj.__proto__;
-      var notPrototypeOfObject = obj !== prototypeOfObject;
-      // avoid recursion problem, breaking in Opera Mini when
-      // Object.getOwnPropertyDescriptor(Object.prototype, 'toString')
-      // or any other Object.prototype accessor
-      if (notPrototypeOfObject) {
-        // eslint-disable-next-line no-proto
-        obj.__proto__ = prototypeOfObject;
-      }
-
-      var getter = lookupGetter(obj, propKey);
-      var setter = lookupSetter(obj, propKey);
-
-      if (notPrototypeOfObject) {
-        // Once we have getter and setter we can put values back.
-        // eslint-disable-next-line no-proto
-        obj.__proto__ = prototype;
-      }
-
-      if (getter || setter) {
-        if (getter) {
-          descriptor.get = getter;
-        }
-
-        if (setter) {
-          descriptor.set = setter;
-        }
-
-        // If it was accessor property we're done and return here
-        // in order to avoid adding `value` to the descriptor.
-        return descriptor;
-      }
-    }
-
-    // If we got this far we know that object has an own property that is
-    // not an accessor so we set it as a value and return descriptor.
-    if (isStringIndex) {
-      descriptor.value = obj.charAt(propKey);
-      descriptor.writable = false;
-    } else {
-      descriptor.value = obj[propKey];
-      descriptor.writable = true;
-    }
-
-    return descriptor;
-  };
-}
-
-/**
- * This method returns a property descriptor for an own property (that is,
- * one directly present on an object and not in the object's prototype chain)
- * of a given object.
- *
- * @param {*} object - The object in which to look for the property.
- * @param {*} property - The name of the property whose description is to be retrieved.
- * @returns {Object} A property descriptor of the given property if it exists on the object, undefined otherwise.
- * @example
- * var getOwnPropertyDescriptor = require('object-get-own-property-descriptor-x');
- * var obj = { bar: 42 };
- * var d = getOwnPropertyDescriptor(o, 'bar');
- * // d is {
- * //   configurable: true,
- * //   enumerable: true,
- * //   value: 42,
- * //   writable: true
- * // }
- */
-module.exports = $getOwnPropertyDescriptor;
-
-},{"attempt-x":4,"has-own-property-x":32,"has-symbol-support-x":33,"is-falsey-x":49,"is-index-x":52,"is-primitive":56,"is-string":57,"property-is-enumerable-x":71,"to-object-x":98,"to-property-key-x":100}],68:[function(require,module,exports){
-/**
- * @file Parses a string argument and returns an integer of the specified radix.
- * @version 2.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module parse-int-x
- */
-
-'use strict';
-
-var nativeParseInt = parseInt;
-var NAN = require('nan-x');
-var toStr = require('to-string-x');
-var trimLeft2016 = require('trim-left-x').trimLeft2016;
-var trimLeft2018 = require('trim-left-x').trimLeft2018;
-var chachedCtrs = require('cached-constructors-x');
-var castNumber = chachedCtrs.Number;
-var charAt = chachedCtrs.String.prototype.charAt;
-var hexRegex = /^[-+]?0[xX]/;
-var test = hexRegex.test;
-
-var $parseInt2016 = function parseInt2016(string, radix) {
-  var str = trimLeft2016(toStr(string));
-
-  return nativeParseInt(str, castNumber(radix) || (test.call(hexRegex, str) ? 16 : 10));
-};
-
-var $parseInt2018 = function parseInt2018(string, radix) {
-  var str = trimLeft2018(toStr(string));
-  if (charAt.call(str, 0) === '\u180E') {
-    return NAN;
-  }
-
-  return nativeParseInt(str, castNumber(radix) || (test.call(hexRegex, str) ? 16 : 10));
-};
-
-module.exports = {
-  /**
-   * Reference to parseInt2018.
-   */
-  parseInt: $parseInt2018,
-
-  /**
-   * This method parses a string argument and returns an integer of the specified
-   * radix (the base in mathematical numeral systems). (ES2016)
-   *
-   * @param {string} string - The value to parse. If the string argument is not a
-   *  string, then it is converted to a string (using the ToString abstract
-   *  operation). Leading whitespace in the string argument is ignored.
-   * @param {number} radix - An integer between 2 and 36 that represents the radix
-   *  (the base in mathematical numeral systems) of the above mentioned string.
-   *  Specify 10 for the decimal numeral system commonly used by humans. Always
-   *  specify this parameter to eliminate reader confusion and to guarantee
-   *  predictable behavior. Different implementations produce different results
-   *  when a radix is not specified, usually defaulting the value to 10.
-   * @throws {TypeError} If target is a Symbol or is not coercible.
-   * @returns {number} An integer number parsed from the given string. If the first
-   *  character cannot be converted to a number, NaN is returned.
-   * @example
-   * var $parseInt = require('parse-int-x').parseInt2016;
-   *
-   * // The following examples all return 15
-   * $parseInt(' 0xF', 16);
-   * $parseInt(' F', 16);
-   * $parseInt('17', 8);
-   * $parseInt(021, 8);
-   * $parseInt('015', 10);   // $parseInt(015, 10); will return 15
-   * $parseInt(15.99, 10);
-   * $parseInt('15,123', 10);
-   * $parseInt('FXX123', 16);
-   * $parseInt('1111', 2);
-   * $parseInt('15 * 3', 10);
-   * $parseInt('15e2', 10);
-   * $parseInt('15px', 10);
-   * $parseInt('12', 13);
-   *
-   * //The following examples all return NaN:
-   * $parseInt('Hello', 8); // Not a number at all
-   * $parseInt('546', 2);   // Digits are not valid for binary representations
-   */
-  parseInt2016: $parseInt2016,
-
-  /**
-   * This method parses a string argument and returns an integer of the specified
-   * radix (the base in mathematical numeral systems). (ES2018)
-   *
-   * @param {string} string - The value to parse. If the string argument is not a
-   *  string, then it is converted to a string (using the ToString abstract
-   *  operation). Leading whitespace in the string argument is ignored.
-   * @param {number} radix - An integer between 2 and 36 that represents the radix
-   *  (the base in mathematical numeral systems) of the above mentioned string.
-   *  Specify 10 for the decimal numeral system commonly used by humans. Always
-   *  specify this parameter to eliminate reader confusion and to guarantee
-   *  predictable behavior. Different implementations produce different results
-   *  when a radix is not specified, usually defaulting the value to 10.
-   * @throws {TypeError} If target is a Symbol or is not coercible.
-   * @returns {number} An integer number parsed from the given string. If the first
-   *  character cannot be converted to a number, NaN is returned.
-   * @example
-   * var $parseInt = require('parse-int-x').parseInt2018;
-   *
-   * // The following examples all return 15
-   * $parseInt(' 0xF', 16);
-   * $parseInt(' F', 16);
-   * $parseInt('17', 8);
-   * $parseInt(021, 8);
-   * $parseInt('015', 10);   // $parseInt(015, 10); will return 15
-   * $parseInt(15.99, 10);
-   * $parseInt('15,123', 10);
-   * $parseInt('FXX123', 16);
-   * $parseInt('1111', 2);
-   * $parseInt('15 * 3', 10);
-   * $parseInt('15e2', 10);
-   * $parseInt('15px', 10);
-   * $parseInt('12', 13);
-   *
-   * //The following examples all return NaN:
-   * $parseInt('Hello', 8); // Not a number at all
-   * $parseInt('546', 2);   // Digits are not valid for binary representations
-   */
-  parseInt2018: $parseInt2018
-};
-
-},{"cached-constructors-x":9,"nan-x":65,"to-string-x":103,"trim-left-x":104}],69:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 /**
  * Compiles a querystring
  * Returns string representation of the object
@@ -8235,7 +4684,7 @@ exports.decode = function(qs){
   return qry;
 };
 
-},{}],70:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 /**
  * Parses an URI
  *
@@ -8276,157 +4725,7 @@ module.exports = function parseuri(str) {
     return uri;
 };
 
-},{}],71:[function(require,module,exports){
-/**
- * @file Indicates whether the specified property is enumerable.
- * @version 1.1.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module property-is-enumerable-x
- */
-
-'use strict';
-
-var toPropertyKey = require('to-property-key-x');
-var toObject = require('to-object-x');
-var propIsEnumerable = Object.prototype.propertyIsEnumerable;
-
-/**
- * This method returns a Boolean indicating whether the specified property is
- * enumerable. Does not attempt to fix bugs in IE<9 or old Opera, otherwise it
- * does ES6ify the method.
- *
- * @param {!Object} object - The object on which to test the property.
- * @param {string|Symbol} property - The name of the property to test.
- * @throws {TypeError} If target is null or undefined.
- * @returns {boolean} A Boolean indicating whether the specified property is
- *  enumerable.
- * @example
- * var propertyIsEnumerable = require('property-is-enumerable-x');
- *
- * var o = {};
- * var a = [];
- * o.prop = 'is enumerable';
- * a[0] = 'is enumerable';
- *
- * propertyIsEnumerable(o, 'prop'); // true
- * propertyIsEnumerable(a, 0); // true
- */
-module.exports = function propertyIsEnumerable(object, property) {
-  return propIsEnumerable.call(toObject(object), toPropertyKey(property));
-};
-
-},{"to-object-x":98,"to-property-key-x":100}],72:[function(require,module,exports){
-/**
- * @file Replace the comments in a string.
- * @version 2.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module replace-comments-x
- */
-
-'use strict';
-
-var toStr = require('to-string-x');
-var requireCoercibleToString = require('require-coercible-to-string-x');
-var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-var replace = ''.replace;
-
-/**
- * This method replaces comments in a string.
- *
- * @param {string} string - The string to be stripped.
- * @param {string} [replacement] - The string to be used as a replacement.
- * @throws {TypeError} If string is null or undefined or not coercible.
- * @throws {TypeError} If replacement is not coercible.
- * @returns {string} The new string with the comments replaced.
- * @example
- * var replaceComments = require('replace-comments-x');
- *
- * replaceComments(test;/* test * /, ''), // 'test;'
- * replaceComments(test; // test, ''), // 'test;'
- */
-module.exports = function replaceComments(string) {
-  return replace.call(requireCoercibleToString(string), STRIP_COMMENTS, arguments.length > 1 ? toStr(arguments[1]) : '');
-};
-
-},{"require-coercible-to-string-x":73,"to-string-x":103}],73:[function(require,module,exports){
-/**
- * @file Requires an argument is corecible then converts using ToString.
- * @version 1.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module require-coercible-to-string-x
- */
-
-'use strict';
-
-var requireObjectCoercible = require('require-object-coercible-x');
-var toStr = require('to-string-x');
-
-/**
- * This method requires an argument is corecible then converts using ToString.
- *
- * @param {*} value - The value to converted to a string.
- * @throws {TypeError} If value is null or undefined.
- * @returns {string} The value as a string.
- * @example
- * var requireCoercibleToString = require('require-coercible-to-string-x');
- *
- * requireCoercibleToString(); // TypeError
- * requireCoercibleToString(null); // TypeError
- * requireCoercibleToString(Symbol('')); // TypeError
- * requireCoercibleToString(Object.create(null)); // TypeError
- * requireCoercibleToString(1); // '1'
- * requireCoercibleToString(true); // 'true'
- */
-module.exports = function requireCoercibleToString(value) {
-  return toStr(requireObjectCoercible(value));
-};
-
-},{"require-object-coercible-x":74,"to-string-x":103}],74:[function(require,module,exports){
-/**
- * @file ES6-compliant shim for RequireObjectCoercible.
- * @see {@link http://www.ecma-international.org/ecma-262/6.0/#sec-requireobjectcoercible|7.2.1 RequireObjectCoercible ( argument )}
- * @version 1.4.1
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module require-object-coercible-x
- */
-
-'use strict';
-
-var isNil = require('is-nil-x');
-
-/**
- * The abstract operation RequireObjectCoercible throws an error if argument
- * is a value that cannot be converted to an Object using ToObject.
- *
- * @param {*} value - The `value` to check.
- * @throws {TypeError} If `value` is a `null` or `undefined`.
- * @returns {string} The `value`.
- * @example
- * var RequireObjectCoercible = require('require-object-coercible-x');
- *
- * RequireObjectCoercible(); // TypeError
- * RequireObjectCoercible(null); // TypeError
- * RequireObjectCoercible('abc'); // 'abc'
- * RequireObjectCoercible(true); // true
- * RequireObjectCoercible(Symbol('foo')); // Symbol('foo')
- */
-module.exports = function RequireObjectCoercible(value) {
-  if (isNil(value)) {
-    throw new TypeError('Cannot call method on ' + value);
-  }
-
-  return value;
-};
-
-},{"is-nil-x":54}],75:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -8522,7 +4821,7 @@ exports.connect = lookup;
 exports.Manager = require('./manager');
 exports.Socket = require('./socket');
 
-},{"./manager":76,"./socket":78,"./url":79,"debug":14,"socket.io-parser":81}],76:[function(require,module,exports){
+},{"./manager":35,"./socket":37,"./url":38,"debug":11,"socket.io-parser":40}],35:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -9097,7 +5396,7 @@ Manager.prototype.onreconnect = function () {
   this.emitAll('reconnect', attempt);
 };
 
-},{"./on":77,"./socket":78,"backo2":5,"component-bind":10,"component-emitter":11,"debug":14,"engine.io-client":16,"indexof":35,"socket.io-parser":81}],77:[function(require,module,exports){
+},{"./on":36,"./socket":37,"backo2":4,"component-bind":8,"component-emitter":9,"debug":11,"engine.io-client":13,"indexof":29,"socket.io-parser":40}],36:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -9123,7 +5422,7 @@ function on (obj, ev, fn) {
   };
 }
 
-},{}],78:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -9136,6 +5435,7 @@ var on = require('./on');
 var bind = require('component-bind');
 var debug = require('debug')('socket.io-client:socket');
 var parseqs = require('parseqs');
+var hasBin = require('has-binary2');
 
 /**
  * Module exports.
@@ -9188,6 +5488,7 @@ function Socket (io, nsp, opts) {
   this.sendBuffer = [];
   this.connected = false;
   this.disconnected = true;
+  this.flags = {};
   if (opts && opts.query) {
     this.query = opts.query;
   }
@@ -9264,7 +5565,10 @@ Socket.prototype.emit = function (ev) {
   }
 
   var args = toArray(arguments);
-  var packet = { type: parser.EVENT, data: args };
+  var packet = {
+    type: (this.flags.binary !== undefined ? this.flags.binary : hasBin(args)) ? parser.BINARY_EVENT : parser.EVENT,
+    data: args
+  };
 
   packet.options = {};
   packet.options.compress = !this.flags || false !== this.flags.compress;
@@ -9282,7 +5586,7 @@ Socket.prototype.emit = function (ev) {
     this.sendBuffer.push(packet);
   }
 
-  delete this.flags;
+  this.flags = {};
 
   return this;
 };
@@ -9343,7 +5647,10 @@ Socket.prototype.onclose = function (reason) {
  */
 
 Socket.prototype.onpacket = function (packet) {
-  if (packet.nsp !== this.nsp) return;
+  var sameNamespace = packet.nsp === this.nsp;
+  var rootNamespaceError = packet.type === parser.ERROR && packet.nsp === '/';
+
+  if (!sameNamespace && !rootNamespaceError) return;
 
   switch (packet.type) {
     case parser.CONNECT:
@@ -9416,7 +5723,7 @@ Socket.prototype.ack = function (id) {
     debug('sending ack %j', args);
 
     self.packet({
-      type: parser.ACK,
+      type: hasBin(args) ? parser.BINARY_ACK : parser.ACK,
       id: id,
       data: args
     });
@@ -9538,12 +5845,24 @@ Socket.prototype.disconnect = function () {
  */
 
 Socket.prototype.compress = function (compress) {
-  this.flags = this.flags || {};
   this.flags.compress = compress;
   return this;
 };
 
-},{"./on":77,"component-bind":10,"component-emitter":11,"debug":14,"parseqs":69,"socket.io-parser":81,"to-array":94}],79:[function(require,module,exports){
+/**
+ * Sets the binary flag
+ *
+ * @param {Boolean} whether the emitted data contains binary
+ * @return {Socket} self
+ * @api public
+ */
+
+Socket.prototype.binary = function (binary) {
+  this.flags.binary = binary;
+  return this;
+};
+
+},{"./on":36,"component-bind":8,"component-emitter":9,"debug":11,"has-binary2":26,"parseqs":32,"socket.io-parser":40,"to-array":53}],38:[function(require,module,exports){
 (function (global){
 
 /**
@@ -9622,7 +5941,7 @@ function url (uri, loc) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"debug":14,"parseuri":70}],80:[function(require,module,exports){
+},{"debug":11,"parseuri":33}],39:[function(require,module,exports){
 (function (global){
 /*global Blob,File*/
 
@@ -9767,7 +6086,7 @@ exports.removeBlobs = function(data, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-buffer":82,"isarray":83}],81:[function(require,module,exports){
+},{"./is-buffer":41,"isarray":42}],40:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -9775,8 +6094,8 @@ exports.removeBlobs = function(data, callback) {
 
 var debug = require('debug')('socket.io-parser');
 var Emitter = require('component-emitter');
-var hasBin = require('has-binary2');
 var binary = require('./binary');
+var isArray = require('isarray');
 var isBuf = require('./is-buffer');
 
 /**
@@ -9883,6 +6202,8 @@ exports.Decoder = Decoder;
 
 function Encoder() {}
 
+var ERROR_PACKET = exports.ERROR + '"encode error"';
+
 /**
  * Encode a packet as a single string if non-binary, or as a
  * buffer sequence, depending on packet type.
@@ -9894,16 +6215,11 @@ function Encoder() {}
  */
 
 Encoder.prototype.encode = function(obj, callback){
-  if ((obj.type === exports.EVENT || obj.type === exports.ACK) && hasBin(obj.data)) {
-    obj.type = obj.type === exports.EVENT ? exports.BINARY_EVENT : exports.BINARY_ACK;
-  }
-
   debug('encoding packet %j', obj);
 
   if (exports.BINARY_EVENT === obj.type || exports.BINARY_ACK === obj.type) {
     encodeAsBinary(obj, callback);
-  }
-  else {
+  } else {
     var encoding = encodeAsString(obj);
     callback([encoding]);
   }
@@ -9940,11 +6256,24 @@ function encodeAsString(obj) {
 
   // json data
   if (null != obj.data) {
-    str += JSON.stringify(obj.data);
+    var payload = tryStringify(obj.data);
+    if (payload !== false) {
+      str += payload;
+    } else {
+      return ERROR_PACKET;
+    }
   }
 
   debug('encoded %j as %s', obj, str);
   return str;
+}
+
+function tryStringify(str) {
+  try {
+    return JSON.stringify(str);
+  } catch(e){
+    return false;
+  }
 }
 
 /**
@@ -10042,7 +6371,9 @@ function decodeString(str) {
     type: Number(str.charAt(0))
   };
 
-  if (null == exports.types[p.type]) return error();
+  if (null == exports.types[p.type]) {
+    return error('unknown packet type ' + p.type);
+  }
 
   // look up attachments if type binary
   if (exports.BINARY_EVENT === p.type || exports.BINARY_ACK === p.type) {
@@ -10088,20 +6419,25 @@ function decodeString(str) {
 
   // look up json data
   if (str.charAt(++i)) {
-    p = tryParse(p, str.substr(i));
+    var payload = tryParse(str.substr(i));
+    var isPayloadValid = payload !== false && (p.type === exports.ERROR || isArray(payload));
+    if (isPayloadValid) {
+      p.data = payload;
+    } else {
+      return error('invalid payload');
+    }
   }
 
   debug('decoded %s as %j', str, p);
   return p;
 }
 
-function tryParse(p, str) {
+function tryParse(str) {
   try {
-    p.data = JSON.parse(str);
+    return JSON.parse(str);
   } catch(e){
-    return error();
+    return false;
   }
-  return p; 
 }
 
 /**
@@ -10162,17 +6498,28 @@ BinaryReconstructor.prototype.finishedReconstruction = function() {
   this.buffers = [];
 };
 
-function error() {
+function error(msg) {
   return {
     type: exports.ERROR,
-    data: 'parser error'
+    data: 'parser error: ' + msg
   };
 }
 
-},{"./binary":80,"./is-buffer":82,"component-emitter":11,"debug":14,"has-binary2":29}],82:[function(require,module,exports){
+},{"./binary":39,"./is-buffer":41,"component-emitter":9,"debug":11,"isarray":42}],41:[function(require,module,exports){
 (function (global){
 
 module.exports = isBuf;
+
+var withNativeBuffer = typeof global.Buffer === 'function' && typeof global.Buffer.isBuffer === 'function';
+var withNativeArrayBuffer = typeof global.ArrayBuffer === 'function';
+
+var isView = (function () {
+  if (withNativeArrayBuffer && typeof global.ArrayBuffer.isView === 'function') {
+    return global.ArrayBuffer.isView;
+  } else {
+    return function (obj) { return obj.buffer instanceof global.ArrayBuffer; };
+  }
+})();
 
 /**
  * Returns true if obj is a buffer or an arraybuffer.
@@ -10181,19 +6528,19 @@ module.exports = isBuf;
  */
 
 function isBuf(obj) {
-  return (global.Buffer && global.Buffer.isBuffer(obj)) ||
-         (global.ArrayBuffer && obj instanceof ArrayBuffer);
+  return (withNativeBuffer && global.Buffer.isBuffer(obj)) ||
+          (withNativeArrayBuffer && (obj instanceof global.ArrayBuffer || isView(obj)));
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],83:[function(require,module,exports){
-arguments[4][30][0].apply(exports,arguments)
-},{"dup":30}],84:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
+arguments[4][27][0].apply(exports,arguments)
+},{"dup":27}],43:[function(require,module,exports){
 
 module.exports = require('./lib');
 
 
-},{"./lib":86}],85:[function(require,module,exports){
+},{"./lib":45}],44:[function(require,module,exports){
 (function (Buffer){
 var util = require('util');
 var Readable = require('stream').Readable;
@@ -10264,7 +6611,7 @@ BlobReadStream.prototype._onerror = function(e) {
 
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":112,"component-bind":10,"stream":135,"util":140}],86:[function(require,module,exports){
+},{"buffer":57,"component-bind":8,"stream":80,"util":85}],45:[function(require,module,exports){
 (function (Buffer){
 var Socket = require('./socket');
 var IOStream = require('./iostream');
@@ -10345,7 +6692,7 @@ exports.createBlobReadStream = function(blob, options) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./blob-read-stream":85,"./iostream":87,"./socket":89,"buffer":112}],87:[function(require,module,exports){
+},{"./blob-read-stream":44,"./iostream":46,"./socket":48,"buffer":57}],46:[function(require,module,exports){
 var util = require('util');
 var Duplex = require('stream').Duplex;
 var bind = require('component-bind');
@@ -10612,7 +6959,7 @@ IOStream.prototype._onerror = function(err) {
   this.destroy();
 };
 
-},{"./uuid":90,"component-bind":10,"debug":91,"stream":135,"util":140}],88:[function(require,module,exports){
+},{"./uuid":49,"component-bind":8,"debug":50,"stream":80,"util":85}],47:[function(require,module,exports){
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var IOStream = require('./iostream');
@@ -10719,7 +7066,7 @@ Decoder.prototype.decodeObject = function(obj) {
   return v;
 }
 
-},{"./iostream":87,"events":114,"util":140}],89:[function(require,module,exports){
+},{"./iostream":46,"events":59,"util":85}],48:[function(require,module,exports){
 (function (global,Buffer){
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
@@ -11010,7 +7357,7 @@ Socket.prototype.cleanup = function(id) {
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"./iostream":87,"./parser":88,"buffer":112,"component-bind":10,"debug":91,"events":114,"util":140}],90:[function(require,module,exports){
+},{"./iostream":46,"./parser":47,"buffer":57,"component-bind":8,"debug":50,"events":59,"util":85}],49:[function(require,module,exports){
 // UUID function from https://gist.github.com/jed/982883
 // More lightweight than node-uuid
 function b(
@@ -11037,7 +7384,7 @@ function b(
 
 module.exports = b;
 
-},{}],91:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -11207,7 +7554,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":92}],92:[function(require,module,exports){
+},{"./debug":51}],51:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -11406,7 +7753,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":93}],93:[function(require,module,exports){
+},{"ms":52}],52:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -11533,7 +7880,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],94:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 module.exports = toArray
 
 function toArray(list, index) {
@@ -11548,1287 +7895,7 @@ function toArray(list, index) {
     return array
 }
 
-},{}],95:[function(require,module,exports){
-/**
- * @file Converts argument to a value of type Boolean.
- * @version 1.0.1
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module to-boolean-x
- */
-
-'use strict';
-
-/**
- * The abstract operation ToBoolean converts argument to a value of type Boolean.
- *
- * @param {*} value - The value to be converted.
- * @returns {boolean} 'true' if value is truthy; otherwise 'false'.
- * @example
- * var toBoolean = require('to-boolean-x');
- *
- * toBoolean(null); // false
- * toBoolean(''); // false
- * toBoolean(1); // true
- * toBoolean('0'); // true
- */
-module.exports = function toBoolean(value) {
-  return !!value;
-};
-
-},{}],96:[function(require,module,exports){
-/**
- * @file ToInteger converts 'argument' to an integral numeric value.
- * @see {@link http://www.ecma-international.org/ecma-262/6.0/#sec-tointeger|7.1.4 ToInteger ( argument )}
- * @version 3.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module to-integer-x
- */
-
-'use strict';
-
-var libToNumber = require('to-number-x');
-var toNumber2016 = libToNumber.toNumber2016;
-var toNumber2018 = libToNumber.toNumber2018;
-var numberIsNaN = require('is-nan-x');
-var numberIsFinite = require('is-finite-x');
-var libMathSign = require('math-sign-x');
-var mathSign2016 = libMathSign.sign2016;
-var mathSign2018 = libMathSign.sign2018;
-var mathFloor = Math.floor;
-var mathAbs = Math.abs;
-
-var $toInteger2016 = function toInteger2016(value) {
-  var number = toNumber2016(value);
-  if (numberIsNaN(number)) {
-    return 0;
-  }
-
-  if (number === 0 || numberIsFinite(number) === false) {
-    return number;
-  }
-
-  return mathSign2016(number) * mathFloor(mathAbs(number));
-};
-
-var $toInteger2018 = function toInteger2018(value) {
-  var number = toNumber2018(value);
-  if (numberIsNaN(number)) {
-    return 0;
-  }
-
-  if (number === 0 || numberIsFinite(number) === false) {
-    return number;
-  }
-
-  return mathSign2018(number) * mathFloor(mathAbs(number));
-};
-
-module.exports = {
-  /**
-   * Reference to toInteger2018.
-   */
-  toInteger: $toInteger2018,
-
-  /**
-   * Converts `value` to an integer. (ES2016)
-   *
-   * @param {*} value - The value to convert.
-   * @returns {number} Returns the converted integer.
-   *
-   * @example
-   * var toInteger = require('to-integer-x').toInteger2016;
-   * toInteger(3); // 3
-   * toInteger(Number.MIN_VALUE); // 0
-   * toInteger(Infinity); // 1.7976931348623157e+308
-   * toInteger('3'); // 3
-   */
-  toInteger2016: $toInteger2016,
-
-  /**
-   * Converts `value` to an integer. (ES2018)
-   *
-   * @param {*} value - The value to convert.
-   * @returns {number} Returns the converted integer.
-   *
-   * @example
-   * var toInteger = require('to-integer-x').toInteger2018;
-   * toInteger(3); // 3
-   * toInteger(Number.MIN_VALUE); // 0
-   * toInteger(Infinity); // 1.7976931348623157e+308
-   * toInteger('3'); // 3
-   */
-  toInteger2018: $toInteger2018
-};
-
-},{"is-finite-x":50,"is-nan-x":53,"math-sign-x":61,"to-number-x":97}],97:[function(require,module,exports){
-/**
- * @file Converts argument to a value of type Number.
- * @version 2.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module to-number-x
- */
-
-'use strict';
-
-var cachedCtrs = require('cached-constructors-x');
-var castNumber = cachedCtrs.Number;
-var Rx = cachedCtrs.RegExp;
-var toPrimitive = require('to-primitive-x');
-var libTrim = require('trim-x');
-var trim2016 = libTrim.trim2016;
-var trim2018 = libTrim.trim2018;
-var libParseInt = require('parse-int-x');
-var $parseInt2016 = libParseInt.parseInt2016;
-var $parseInt2018 = libParseInt.parseInt2018;
-var pStrSlice = cachedCtrs.String.prototype.slice;
-var NAN = require('nan-x');
-
-var binaryRegex = /^0b[01]+$/i;
-// Note that in IE 8, RegExp.prototype.test doesn't seem to exist: ie, "test" is
-// an own property of regexes. wtf.
-var test = binaryRegex.test;
-var isBinary = function _isBinary(value) {
-  return test.call(binaryRegex, value);
-};
-
-var octalRegex = /^0o[0-7]+$/i;
-var isOctal = function _isOctal(value) {
-  return test.call(octalRegex, value);
-};
-
-var nonWSregex2016 = new Rx('[\u0085\u200b\ufffe]', 'g');
-var hasNonWS2016 = function _hasNonWS(value) {
-  return test.call(nonWSregex2016, value);
-};
-
-var nonWSregex2018 = new Rx('[\u0085\u180e\u200b\ufffe]', 'g');
-var hasNonWS2018 = function _hasNonWS(value) {
-  return test.call(nonWSregex2018, value);
-};
-
-var invalidHexLiteral = /^[-+]0x[0-9a-f]+$/i;
-var isInvalidHexLiteral = function _isInvalidHexLiteral(value) {
-  return test.call(invalidHexLiteral, value);
-};
-
-var $toNumber2016 = function toNumber2016(argument) {
-  var value = toPrimitive(argument, Number);
-  if (typeof value === 'symbol') {
-    throw new TypeError('Cannot convert a Symbol value to a number');
-  }
-
-  if (typeof value === 'string') {
-    if (isBinary(value)) {
-      return toNumber2016($parseInt2016(pStrSlice.call(value, 2), 2));
-    }
-
-    if (isOctal(value)) {
-      return toNumber2016($parseInt2016(pStrSlice.call(value, 2), 8));
-    }
-
-    if (hasNonWS2016(value) || isInvalidHexLiteral(value)) {
-      return NAN;
-    }
-
-    var trimmed = trim2016(value);
-    if (trimmed !== value) {
-      return toNumber2016(trimmed);
-    }
-  }
-
-  return castNumber(value);
-};
-
-var $toNumber2018 = function toNumber2018(argument) {
-  var value = toPrimitive(argument, Number);
-  if (typeof value === 'symbol') {
-    throw new TypeError('Cannot convert a Symbol value to a number');
-  }
-
-  if (typeof value === 'string') {
-    if (isBinary(value)) {
-      return toNumber2018($parseInt2018(pStrSlice.call(value, 2), 2));
-    }
-
-    if (isOctal(value)) {
-      return toNumber2018($parseInt2018(pStrSlice.call(value, 2), 8));
-    }
-
-    if (hasNonWS2018(value) || isInvalidHexLiteral(value)) {
-      return NAN;
-    }
-
-    var trimmed = trim2018(value);
-    if (trimmed !== value) {
-      return toNumber2018(trimmed);
-    }
-  }
-
-  return castNumber(value);
-};
-
-module.exports = {
-  /**
-   * reference to toNumber2018.
-   */
-  toNumber: $toNumber2018,
-
-  /**
-   * This method converts argument to a value of type Number. (ES2016)
-
-   * @param {*} argument - The argument to convert to a number.
-   * @throws {TypeError} - If argument is a Symbol or not coercible.
-   * @returns {*} The argument converted to a number.
-   * @example
-   * var toNumber = require('to-number-x').toNumber2016;
-   *
-   * toNumber('1'); // 1
-   * toNumber(null); // 0
-   * toNumber(true); // 1
-   * toNumber('0o10'); // 8
-   * toNumber('0b10'); // 2
-   * toNumber('0xF'); // 16
-   *
-   * toNumber(' 1 '); // 1
-   *
-   * toNumber(Symbol('')) // TypeError
-   * toNumber(Object.create(null)) // TypeError
-   */
-  toNumber2016: $toNumber2016,
-
-  /**
-   * This method converts argument to a value of type Number. (ES2018)
-
-   * @param {*} argument - The argument to convert to a number.
-   * @throws {TypeError} - If argument is a Symbol or not coercible.
-   * @returns {*} The argument converted to a number.
-   * @example
-   * var toNumber = require('to-number-x').toNumber2018;
-   *
-   * toNumber('1'); // 1
-   * toNumber(null); // 0
-   * toNumber(true); // 1
-   * toNumber('0o10'); // 8
-   * toNumber('0b10'); // 2
-   * toNumber('0xF'); // 16
-   *
-   * toNumber(' 1 '); // 1
-   *
-   * toNumber(Symbol('')) // TypeError
-   * toNumber(Object.create(null)) // TypeError
-   */
-  toNumber2018: $toNumber2018
-};
-
-},{"cached-constructors-x":9,"nan-x":65,"parse-int-x":68,"to-primitive-x":99,"trim-x":106}],98:[function(require,module,exports){
-/**
- * @file ES6-compliant shim for ToObject.
- * @see {@link http://www.ecma-international.org/ecma-262/6.0/#sec-toobject|7.1.13 ToObject ( argument )}
- * @version 1.5.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module to-object-x
- */
-
-'use strict';
-
-var requireObjectCoercible = require('require-object-coercible-x');
-var castObject = require('cached-constructors-x').Object;
-
-/**
- * The abstract operation ToObject converts argument to a value of
- * type Object.
- *
- * @param {*} value - The `value` to convert.
- * @throws {TypeError} If `value` is a `null` or `undefined`.
- * @returns {!Object} The `value` converted to an object.
- * @example
- * var ToObject = require('to-object-x');
- *
- * ToObject(); // TypeError
- * ToObject(null); // TypeError
- * ToObject('abc'); // Object('abc')
- * ToObject(true); // Object(true)
- * ToObject(Symbol('foo')); // Object(Symbol('foo'))
- */
-module.exports = function toObject(value) {
-  return castObject(requireObjectCoercible(value));
-};
-
-},{"cached-constructors-x":9,"require-object-coercible-x":74}],99:[function(require,module,exports){
-/**
- * @file Converts a JavaScript object to a primitive value.
- * @version 1.1.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module to-primitive-x
- */
-
-'use strict';
-
-var hasSymbols = require('has-symbol-support-x');
-var isPrimitive = require('is-primitive');
-var isDate = require('is-date-object');
-var isSymbol = require('is-symbol');
-var isFunction = require('is-function-x');
-var requireObjectCoercible = require('require-object-coercible-x');
-var isNil = require('is-nil-x');
-var isUndefined = require('validate.io-undefined');
-var symToPrimitive = hasSymbols && Symbol.toPrimitive;
-var symValueOf = hasSymbols && Symbol.prototype.valueOf;
-
-var toStringOrder = ['toString', 'valueOf'];
-var toNumberOrder = ['valueOf', 'toString'];
-var orderLength = 2;
-
-var ordinaryToPrimitive = function _ordinaryToPrimitive(O, hint) {
-  requireObjectCoercible(O);
-  if (typeof hint !== 'string' || (hint !== 'number' && hint !== 'string')) {
-    throw new TypeError('hint must be "string" or "number"');
-  }
-
-  var methodNames = hint === 'string' ? toStringOrder : toNumberOrder;
-  var method;
-  var result;
-  for (var i = 0; i < orderLength; i += 1) {
-    method = O[methodNames[i]];
-    if (isFunction(method)) {
-      result = method.call(O);
-      if (isPrimitive(result)) {
-        return result;
-      }
-    }
-  }
-
-  throw new TypeError('No default value');
-};
-
-var getMethod = function _getMethod(O, P) {
-  var func = O[P];
-  if (isNil(func) === false) {
-    if (isFunction(func) === false) {
-      throw new TypeError(func + ' returned for property ' + P + ' of object ' + O + ' is not a function');
-    }
-
-    return func;
-  }
-
-  return void 0;
-};
-
-// http://www.ecma-international.org/ecma-262/6.0/#sec-toprimitive
-
-/**
- * This method converts a JavaScript object to a primitive value.
- * Note: When toPrimitive is called with no hint, then it generally behaves as
- * if the hint were Number. However, objects may over-ride this behaviour by
- * defining a @@toPrimitive method. Of the objects defined in this specification
- * only Date objects (see 20.3.4.45) and Symbol objects (see 19.4.3.4) over-ride
- * the default ToPrimitive behaviour. Date objects treat no hint as if the hint
- * were String.
- *
- * @param {*} input - The input to convert.
- * @param {constructor} [prefferedtype] - The preffered type (String or Number).
- * @throws {TypeError} If unable to convert input to a primitive.
- * @returns {string|number} The converted input as a primitive.
- * @example
- * var toPrimitive = require('to-primitive-x');
- *
- * var date = new Date(0);
- * toPrimitive(date)); // Thu Jan 01 1970 01:00:00 GMT+0100 (CET)
- * toPrimitive(date, String)); // Thu Jan 01 1970 01:00:00 GMT+0100 (CET)
- * toPrimitive(date, Number)); // 0
- */
-module.exports = function toPrimitive(input, preferredType) {
-  if (isPrimitive(input)) {
-    return input;
-  }
-
-  var hint = 'default';
-  if (arguments.length > 1) {
-    if (preferredType === String) {
-      hint = 'string';
-    } else if (preferredType === Number) {
-      hint = 'number';
-    }
-  }
-
-  var exoticToPrim;
-  if (hasSymbols) {
-    if (symToPrimitive) {
-      exoticToPrim = getMethod(input, symToPrimitive);
-    } else if (isSymbol(input)) {
-      exoticToPrim = symValueOf;
-    }
-  }
-
-  if (isUndefined(exoticToPrim) === false) {
-    var result = exoticToPrim.call(input, hint);
-    if (isPrimitive(result)) {
-      return result;
-    }
-
-    throw new TypeError('unable to convert exotic object to primitive');
-  }
-
-  if (hint === 'default' && (isDate(input) || isSymbol(input))) {
-    hint = 'string';
-  }
-
-  return ordinaryToPrimitive(input, hint === 'default' ? 'number' : hint);
-};
-
-},{"has-symbol-support-x":33,"is-date-object":48,"is-function-x":51,"is-nil-x":54,"is-primitive":56,"is-symbol":58,"require-object-coercible-x":74,"validate.io-undefined":107}],100:[function(require,module,exports){
-/**
- * @file Converts argument to a value that can be used as a property key.
- * @version 2.0.2
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module to-property-key-x
- */
-
-'use strict';
-
-var hasSymbols = require('has-symbol-support-x');
-var toPrimitive = require('to-primitive-x');
-var toStr = require('to-string-x');
-
-/**
- * This method Converts argument to a value that can be used as a property key.
- *
- * @param {*} argument - The argument to onvert to a property key.
- * @throws {TypeError} If argument is not a symbol and is not coercible to a string.
- * @returns {string|symbol} The converted argument.
- * @example
- * var toPropertyKey = require('to-property-key-x');
- *
- * toPropertyKey(); // 'undefined'
- * toPropertyKey(1); // '1'
- * toPropertyKey(true); // 'true'
- *
- * var symbol = Symbol('a');
- * toPropertyKey(symbol); // symbol
- *
- * toPropertyKey(Object.create(null)); // TypeError
- */
-module.exports = function toPropertyKey(argument) {
-  var key = toPrimitive(argument, String);
-  return hasSymbols && typeof key === 'symbol' ? key : toStr(key);
-};
-
-},{"has-symbol-support-x":33,"to-primitive-x":99,"to-string-x":103}],101:[function(require,module,exports){
-/**
- * @file ES6 abstract ToString with Symbol conversion support.
- * @see {@link http://www.ecma-international.org/ecma-262/6.0/#sec-tostring|7.1.12 ToString ( argument )}
- * @version 1.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module to-string-symbols-supported-x
- */
-
-'use strict';
-
-var castString = require('cached-constructors-x').String;
-var pToString = require('has-symbol-support-x') && Symbol.prototype.toString;
-var isSymbol = typeof pToString === 'function' && require('is-symbol');
-
-/**
- * The abstract operation ToString converts argument to a value of type String,
- * however the specification states that if the argument is a Symbol then a
- * 'TypeError' is thrown. This version also allows Symbols be converted to
- * a string. Other uncoercible exotics will still throw though.
- *
- * @param {*} value - The value to convert to a string.
- * @returns {string} The converted value.
- * @example
- * var toStringSymbolsSupported = require('to-string-symbols-supported-x');
- *
- * toStringSymbolsSupported(); // 'undefined'
- * toStringSymbolsSupported(null); // 'null'
- * toStringSymbolsSupported('abc'); // 'abc'
- * toStringSymbolsSupported(true); // 'true'
- * toStringSymbolsSupported(Symbol('foo')); // 'Symbol('foo')'
- * toStringSymbolsSupported(Object(Symbol('foo'))); // 'Symbol('foo')'
- * toStringSymbolsSupported(Object.create(null)); // TypeError
- */
-module.exports = function toStringSymbolsSupported(value) {
-  return isSymbol && isSymbol(value) ? pToString.call(value) : castString(value);
-};
-
-},{"cached-constructors-x":9,"has-symbol-support-x":33,"is-symbol":58}],102:[function(require,module,exports){
-/**
- * @file Get an object's ES6 @@toStringTag.
- * @see {@link http://www.ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring|19.1.3.6 Object.prototype.toString ( )}
- * @version 1.4.2
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module to-string-tag-x
- */
-
-'use strict';
-
-var isNull = require('lodash.isnull');
-var isUndefined = require('validate.io-undefined');
-var toStr = {}.toString;
-
-/**
- * The `toStringTag` method returns "[object type]", where type is the
- * object type.
- *
- * @param {*} value - The object of which to get the object type string.
- * @returns {string} The object type string.
- * @example
- * var toStringTag = require('to-string-tag-x');
- *
- * var o = new Object();
- * toStringTag(o); // returns '[object Object]'
- */
-module.exports = function toStringTag(value) {
-  if (isNull(value)) {
-    return '[object Null]';
-  }
-
-  if (isUndefined(value)) {
-    return '[object Undefined]';
-  }
-
-  return toStr.call(value);
-};
-
-},{"lodash.isnull":59,"validate.io-undefined":107}],103:[function(require,module,exports){
-/**
- * @file ES6-compliant shim for ToString.
- * @see {@link http://www.ecma-international.org/ecma-262/6.0/#sec-tostring|7.1.12 ToString ( argument )}
- * @version 1.4.2
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module to-string-x
- */
-
-'use strict';
-
-var castString = ''.constructor;
-var isSymbol = require('is-symbol');
-
-/**
- * The abstract operation ToString converts argument to a value of type String.
- *
- * @param {*} value - The value to convert to a string.
- * @throws {TypeError} If `value` is a Symbol.
- * @returns {string} The converted value.
- * @example
- * var $toString = require('to-string-x');
- *
- * $toString(); // 'undefined'
- * $toString(null); // 'null'
- * $toString('abc'); // 'abc'
- * $toString(true); // 'true'
- * $toString(Symbol('foo')); // TypeError
- * $toString(Symbol.iterator); // TypeError
- * $toString(Object(Symbol.iterator)); // TypeError
- * $toString(Object.create(null)); // TypeError
- */
-module.exports = function ToString(value) {
-  if (isSymbol(value)) {
-    throw new TypeError('Cannot convert a Symbol value to a string');
-  }
-
-  return castString(value);
-};
-
-},{"is-symbol":58}],104:[function(require,module,exports){
-/**
- * @file This method removes whitespace from the left end of a string.
- * @version 3.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module trim-left-x
- */
-
-'use strict';
-
-var requireCoercibleToString = require('require-coercible-to-string-x');
-var Rx = require('cached-constructors-x').RegExp;
-var reLeft2016 = new Rx('^[' + require('white-space-x').string2016 + ']+');
-var reLeft2018 = new Rx('^[' + require('white-space-x').string2018 + ']+');
-var replace = ''.replace;
-
-var $trimLeft2016 = function trimLeft2016(string) {
-  return replace.call(requireCoercibleToString(string), reLeft2016, '');
-};
-
-var $trimLeft2018 = function trimLeft2018(string) {
-  return replace.call(requireCoercibleToString(string), reLeft2018, '');
-};
-
-module.exports = {
-  /**
-   * A reference to leftTrim2018.
-   */
-  trimLeft: $trimLeft2018,
-
-  /**
-   * This method removes whitespace from the left end of a string. (ES2016)
-   *
-   * @param {string} string - The string to trim the left end whitespace from.
-   * @throws {TypeError} If string is null or undefined or not coercible.
-   * @returns {string} The left trimmed string.
-   * @example
-   * var trimLeft = require('trim-left-x').trimLeft2016;
-   *
-   * trimLeft(' \t\na \t\n') === 'a \t\n'; // true
-   */
-  trimLeft2016: $trimLeft2016,
-
-  /**
-   * This method removes whitespace from the left end of a string. (ES2018)
-   *
-   * @param {string} string - The string to trim the left end whitespace from.
-   * @throws {TypeError} If string is null or undefined or not coercible.
-   * @returns {string} The left trimmed string.
-   * @example
-   * var trimLeft = require('trim-left-x').trimLeft2018;
-   *
-   * trimLeft(' \t\na \t\n') === 'a \t\n'; // true
-   */
-  trimLeft2018: $trimLeft2018
-};
-
-},{"cached-constructors-x":9,"require-coercible-to-string-x":73,"white-space-x":108}],105:[function(require,module,exports){
-/**
- * @file This method removes whitespace from the right end of a string.
- * @version 3.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module trim-right-x
- */
-
-'use strict';
-
-var requireCoercibleToString = require('require-coercible-to-string-x');
-var Rx = require('cached-constructors-x').RegExp;
-var reRight2016 = new Rx('[' + require('white-space-x').string2016 + ']+$');
-var reRight2018 = new Rx('[' + require('white-space-x').string2018 + ']+$');
-var replace = ''.replace;
-
-var $trimRight2016 = function trimRight2016(string) {
-  return replace.call(requireCoercibleToString(string), reRight2016, '');
-};
-
-var $trimRight2018 = function trimRight2018(string) {
-  return replace.call(requireCoercibleToString(string), reRight2018, '');
-};
-
-module.exports = {
-  /**
-   * A reference to trimRight2018.
-   */
-  trimRight: $trimRight2018,
-
-  /**
-   * This method removes whitespace from the right end of a string. (ES2016)
-   *
-   * @param {string} string - The string to trim the right end whitespace from.
-   * @throws {TypeError} If string is null or undefined or not coercible.
-   * @returns {string} The right trimmed string.
-   * @example
-   * var trimRight = require('trim-right-x');
-   *
-   * trimRight(' \t\na \t\n') === ' \t\na'; // true
-   */
-  trimRight2016: $trimRight2016,
-
-  /**
-   * This method removes whitespace from the right end of a string. (ES2018)
-   *
-   * @param {string} string - The string to trim the right end whitespace from.
-   * @throws {TypeError} If string is null or undefined or not coercible.
-   * @returns {string} The right trimmed string.
-   * @example
-   * var trimRight = require('trim-right-x');
-   *
-   * trimRight(' \t\na \t\n') === ' \t\na'; // true
-   */
-  trimRight2018: $trimRight2018
-};
-
-},{"cached-constructors-x":9,"require-coercible-to-string-x":73,"white-space-x":108}],106:[function(require,module,exports){
-/**
- * @file This method removes whitespace from the left and right end of a string.
- * @version 3.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module trim-x
- */
-
-'use strict';
-
-var libTrimLeft = require('trim-left-x');
-var trimLeft2016 = libTrimLeft.trimLeft2016;
-var trimLeft2018 = libTrimLeft.trimLeft2018;
-var libTrimRight = require('trim-right-x');
-var trimRight2016 = libTrimRight.trimRight2016;
-var trimRight2018 = libTrimRight.trimRight2016;
-
-var $trim2016 = function trim2016(string) {
-  return trimLeft2016(trimRight2016(string));
-};
-
-var $trim2018 = function trim2018(string) {
-  return trimLeft2018(trimRight2018(string));
-};
-
-module.exports = {
-  /**
-   * A reference to trim2018.
-   */
-  trim: $trim2018,
-
-  /**
-   * This method removes whitespace from the left and right end of a string.
-   * (ES2016)
-   * @param {string} string - The string to trim the whitespace from.
-   * @throws {TypeError} If string is null or undefined or not coercible.
-   * @returns {string} The trimmed string.
-   * @example
-   * var trim = require('trim-x');
-   *
-   * trim(' \t\na \t\n') === 'a'; // true
-   */
-  trim2016: $trim2016,
-
-  /**
-   * This method removes whitespace from the left and right end of a string.
-   * (ES2018)
-   *
-   * @param {string} string - The string to trim the whitespace from.
-   * @throws {TypeError} If string is null or undefined or not coercible.
-   * @returns {string} The trimmed string.
-   * @example
-   * var trim = require('trim-x');
-   *
-   * trim(' \t\na \t\n') === 'a'; // true
-   */
-  trim2018: $trim2018
-};
-
-},{"trim-left-x":104,"trim-right-x":105}],107:[function(require,module,exports){
-/**
-*
-*	VALIDATE: undefined
-*
-*
-*	DESCRIPTION:
-*		- Validates if a value is undefined.
-*
-*
-*	NOTES:
-*		[1]
-*
-*
-*	TODO:
-*		[1]
-*
-*
-*	LICENSE:
-*		MIT
-*
-*	Copyright (c) 2014. Athan Reines.
-*
-*
-*	AUTHOR:
-*		Athan Reines. kgryte@gmail.com. 2014.
-*
-*/
-
-'use strict';
-
-/**
-* FUNCTION: isUndefined( value )
-*	Validates if a value is undefined.
-*
-* @param {*} value - value to be validated
-* @returns {Boolean} boolean indicating whether value is undefined
-*/
-function isUndefined( value ) {
-	return value === void 0;
-} // end FUNCTION isUndefined()
-
-
-// EXPORTS //
-
-module.exports = isUndefined;
-
-},{}],108:[function(require,module,exports){
-/**
- * @file List of ECMAScript white space characters.
- * @version 3.0.0
- * @author Xotic750 <Xotic750@gmail.com>
- * @copyright  Xotic750
- * @license {@link <https://opensource.org/licenses/MIT> MIT}
- * @module white-space-x
- */
-
-'use strict';
-
-/**
- * A record of a white space character.
- *
- * @typedef {Object} CharRecord
- * @property {number} code - The character code.
- * @property {string} description - A description of the character.
- * @property {boolean} es5 - Whether the spec lists this as a white space.
- * @property {boolean} es2015 - Whether the spec lists this as a white space.
- * @property {boolean} es2016 - Whether the spec lists this as a white space.
- * @property {boolean} es2017 - Whether the spec lists this as a white space.
- * @property {boolean} es2018 - Whether the spec lists this as a white space.
- * @property {string} string - The character string.
- */
-
-/**
- * An array of the whitespace char codes, string, descriptions and language
- * presence in the specifications.
- *
- * @private
- * @type Array.<CharRecord>
- */
-var list = [
-  {
-    code: 0x0009,
-    description: 'Tab',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u0009'
-  },
-  {
-    code: 0x000a,
-    description: 'Line Feed',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u000a'
-  },
-  {
-    code: 0x000b,
-    description: 'Vertical Tab',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u000b'
-  },
-  {
-    code: 0x000c,
-    description: 'Form Feed',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u000c'
-  },
-  {
-    code: 0x000d,
-    description: 'Carriage Return',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u000d'
-  },
-  {
-    code: 0x0020,
-    description: 'Space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u0020'
-  },
-  /*
-  {
-    code: 0x0085,
-    description: 'Next line',
-    es5: false,
-    es2015: false,
-    es2016: false,
-    es2017: false,
-    es2018: false,
-    string: '\u0085'
-  }
-  */
-  {
-    code: 0x00a0,
-    description: 'No-break space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u00a0'
-  },
-  {
-    code: 0x1680,
-    description: 'Ogham space mark',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u1680'
-  },
-  {
-    code: 0x180e,
-    description: 'Mongolian vowel separator',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: false,
-    es2018: false,
-    string: '\u180e'
-  },
-  {
-    code: 0x2000,
-    description: 'En quad',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u2000'
-  },
-  {
-    code: 0x2001,
-    description: 'Em quad',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u2001'
-  },
-  {
-    code: 0x2002,
-    description: 'En space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u2002'
-  },
-  {
-    code: 0x2003,
-    description: 'Em space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u2003'
-  },
-  {
-    code: 0x2004,
-    description: 'Three-per-em space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u2004'
-  },
-  {
-    code: 0x2005,
-    description: 'Four-per-em space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u2005'
-  },
-  {
-    code: 0x2006,
-    description: 'Six-per-em space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u2006'
-  },
-  {
-    code: 0x2007,
-    description: 'Figure space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u2007'
-  },
-  {
-    code: 0x2008,
-    description: 'Punctuation space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u2008'
-  },
-  {
-    code: 0x2009,
-    description: 'Thin space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u2009'
-  },
-  {
-    code: 0x200a,
-    description: 'Hair space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u200a'
-  },
-  /*
-  {
-    code: 0x200b,
-    description: 'Zero width space',
-    es5: false,
-    es2015: false,
-    es2016: false,
-    es2017: false,
-    es2018: false,
-    string: '\u200b'
-  },
-  */
-  {
-    code: 0x2028,
-    description: 'Line separator',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u2028'
-  },
-  {
-    code: 0x2029,
-    description: 'Paragraph separator',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u2029'
-  },
-  {
-    code: 0x202f,
-    description: 'Narrow no-break space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u202f'
-  },
-  {
-    code: 0x205f,
-    description: 'Medium mathematical space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u205f'
-  },
-  {
-    code: 0x3000,
-    description: 'Ideographic space',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\u3000'
-  },
-  {
-    code: 0xfeff,
-    description: 'Byte Order Mark',
-    es5: true,
-    es2015: true,
-    es2016: true,
-    es2017: true,
-    es2018: true,
-    string: '\ufeff'
-  }
-];
-
-var stringES2016 = '';
-var stringES2018 = '';
-var length = list.length;
-for (var i = 0; i < length; i += 1) {
-  if (list[i].es2016) {
-    stringES2016 += list[i].string;
-  }
-
-  if (list[i].es2018) {
-    stringES2018 += list[i].string;
-  }
-}
-
-module.exports = {
-  /**
-   * An array of the whitespace char codes, string, descriptions and language
-   * presence in the specifications.
-   *
-   * @type Array.<CharRecord>
-   * @example
-   * var whiteSpace = require('white-space-x');
-   * whiteSpaces.list.foreach(function (item) {
-   *   console.log(lib.description, item.code, item.string);
-   * });
-   */
-  list: list,
-  /**
-   * A string of the ES2017 to ES2018 whitespace characters.
-   *
-   * @type string
-   */
-  string: stringES2018,
-
-  /**
-   * A string of the ES5 to ES2016 whitespace characters.
-   *
-   * @type string
-   */
-  string5: stringES2016,
-
-  /**
-   * A string of the ES5 to ES2016 whitespace characters.
-   *
-   * @type string
-   */
-  string2015: stringES2016,
-
-  /**
-   * A string of the ES5 to ES2016 whitespace characters.
-   *
-   * @type string
-   * @example
-   * var whiteSpace = require('white-space-x');
-   * var characters = [
-   *   '\u0009',
-   *   '\u000a',
-   *   '\u000b',
-   *   '\u000c',
-   *   '\u000d',
-   *   '\u0020',
-   *   '\u00a0',
-   *   '\u1680',
-   *   '\u180e',
-   *   '\u2000',
-   *   '\u2001',
-   *   '\u2002',
-   *   '\u2003',
-   *   '\u2004',
-   *   '\u2005',
-   *   '\u2006',
-   *   '\u2007',
-   *   '\u2008',
-   *   '\u2009',
-   *   '\u200a',
-   *   '\u2028',
-   *   '\u2029',
-   *   '\u202f',
-   *   '\u205f',
-   *   '\u3000',
-   *   '\ufeff'
-   * ];
-   * var ws = characters.join('');
-   * var re1 = new RegExp('^[' + whiteSpace.string2016 + ']+$)');
-   * re1.test(ws); // true
-   */
-  string2016: stringES2016,
-
-  /**
-   * A string of the ES2017 to ES2018 whitespace characters.
-   *
-   * @type string
-   */
-  string2017: stringES2018,
-
-  /**
-   * A string of the ES2017 to ES2018 whitespace characters.
-   *
-   * @type string
-   * @example
-   * var whiteSpace = require('white-space-x');
-   * var characters = [
-   *   '\u0009',
-   *   '\u000a',
-   *   '\u000b',
-   *   '\u000c',
-   *   '\u000d',
-   *   '\u0020',
-   *   '\u00a0',
-   *   '\u1680',
-   *   '\u2000',
-   *   '\u2001',
-   *   '\u2002',
-   *   '\u2003',
-   *   '\u2004',
-   *   '\u2005',
-   *   '\u2006',
-   *   '\u2007',
-   *   '\u2008',
-   *   '\u2009',
-   *   '\u200a',
-   *   '\u2028',
-   *   '\u2029',
-   *   '\u202f',
-   *   '\u205f',
-   *   '\u3000',
-   *   '\ufeff'
-   * ];
-   * var ws = characters.join('');
-   * var re1 = new RegExp('^[' + whiteSpace.string2018 + ']+$)');
-   * re1.test(ws); // true
-   */
-  string2018: stringES2018
-};
-
-},{}],109:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 'use strict';
 
 var alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'.split('')
@@ -12898,7 +7965,7 @@ yeast.encode = encode;
 yeast.decode = decode;
 module.exports = yeast;
 
-},{}],110:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -13014,9 +8081,9 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],111:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 
-},{}],112:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -14732,7 +9799,7 @@ function numberIsNaN (obj) {
   return obj !== obj // eslint-disable-line no-self-compare
 }
 
-},{"base64-js":110,"ieee754":115}],113:[function(require,module,exports){
+},{"base64-js":55,"ieee754":60}],58:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -14843,7 +9910,7 @@ function objectToString(o) {
 }
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-},{"../../is-buffer/index.js":117}],114:[function(require,module,exports){
+},{"../../is-buffer/index.js":62}],59:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -15147,7 +10214,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],115:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -15233,9 +10300,32 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],116:[function(require,module,exports){
-arguments[4][37][0].apply(exports,arguments)
-},{"dup":37}],117:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],62:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -15258,9 +10348,9 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],118:[function(require,module,exports){
-arguments[4][30][0].apply(exports,arguments)
-},{"dup":30}],119:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
+arguments[4][27][0].apply(exports,arguments)
+},{"dup":27}],64:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -15307,7 +10397,7 @@ function nextTick(fn, arg1, arg2, arg3) {
 }
 
 }).call(this,require('_process'))
-},{"_process":120}],120:[function(require,module,exports){
+},{"_process":65}],65:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -15493,10 +10583,10 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],121:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 module.exports = require('./lib/_stream_duplex.js');
 
-},{"./lib/_stream_duplex.js":122}],122:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":67}],67:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -15621,7 +10711,7 @@ function forEach(xs, f) {
     f(xs[i], i);
   }
 }
-},{"./_stream_readable":124,"./_stream_writable":126,"core-util-is":113,"inherits":116,"process-nextick-args":119}],123:[function(require,module,exports){
+},{"./_stream_readable":69,"./_stream_writable":71,"core-util-is":58,"inherits":61,"process-nextick-args":64}],68:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -15669,7 +10759,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":125,"core-util-is":113,"inherits":116}],124:[function(require,module,exports){
+},{"./_stream_transform":70,"core-util-is":58,"inherits":61}],69:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -16679,7 +11769,7 @@ function indexOf(xs, x) {
   return -1;
 }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":122,"./internal/streams/BufferList":127,"./internal/streams/destroy":128,"./internal/streams/stream":129,"_process":120,"core-util-is":113,"events":114,"inherits":116,"isarray":118,"process-nextick-args":119,"safe-buffer":134,"string_decoder/":136,"util":111}],125:[function(require,module,exports){
+},{"./_stream_duplex":67,"./internal/streams/BufferList":72,"./internal/streams/destroy":73,"./internal/streams/stream":74,"_process":65,"core-util-is":58,"events":59,"inherits":61,"isarray":63,"process-nextick-args":64,"safe-buffer":79,"string_decoder/":81,"util":56}],70:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -16894,7 +11984,7 @@ function done(stream, er, data) {
 
   return stream.push(null);
 }
-},{"./_stream_duplex":122,"core-util-is":113,"inherits":116}],126:[function(require,module,exports){
+},{"./_stream_duplex":67,"core-util-is":58,"inherits":61}],71:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -17561,7 +12651,7 @@ Writable.prototype._destroy = function (err, cb) {
   cb(err);
 };
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":122,"./internal/streams/destroy":128,"./internal/streams/stream":129,"_process":120,"core-util-is":113,"inherits":116,"process-nextick-args":119,"safe-buffer":134,"util-deprecate":137}],127:[function(require,module,exports){
+},{"./_stream_duplex":67,"./internal/streams/destroy":73,"./internal/streams/stream":74,"_process":65,"core-util-is":58,"inherits":61,"process-nextick-args":64,"safe-buffer":79,"util-deprecate":82}],72:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -17636,7 +12726,7 @@ module.exports = function () {
 
   return BufferList;
 }();
-},{"safe-buffer":134}],128:[function(require,module,exports){
+},{"safe-buffer":79}],73:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -17709,13 +12799,13 @@ module.exports = {
   destroy: destroy,
   undestroy: undestroy
 };
-},{"process-nextick-args":119}],129:[function(require,module,exports){
+},{"process-nextick-args":64}],74:[function(require,module,exports){
 module.exports = require('events').EventEmitter;
 
-},{"events":114}],130:[function(require,module,exports){
+},{"events":59}],75:[function(require,module,exports){
 module.exports = require('./readable').PassThrough
 
-},{"./readable":131}],131:[function(require,module,exports){
+},{"./readable":76}],76:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = exports;
 exports.Readable = exports;
@@ -17724,13 +12814,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":122,"./lib/_stream_passthrough.js":123,"./lib/_stream_readable.js":124,"./lib/_stream_transform.js":125,"./lib/_stream_writable.js":126}],132:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":67,"./lib/_stream_passthrough.js":68,"./lib/_stream_readable.js":69,"./lib/_stream_transform.js":70,"./lib/_stream_writable.js":71}],77:[function(require,module,exports){
 module.exports = require('./readable').Transform
 
-},{"./readable":131}],133:[function(require,module,exports){
+},{"./readable":76}],78:[function(require,module,exports){
 module.exports = require('./lib/_stream_writable.js');
 
-},{"./lib/_stream_writable.js":126}],134:[function(require,module,exports){
+},{"./lib/_stream_writable.js":71}],79:[function(require,module,exports){
 /* eslint-disable node/no-deprecated-api */
 var buffer = require('buffer')
 var Buffer = buffer.Buffer
@@ -17794,7 +12884,7 @@ SafeBuffer.allocUnsafeSlow = function (size) {
   return buffer.SlowBuffer(size)
 }
 
-},{"buffer":112}],135:[function(require,module,exports){
+},{"buffer":57}],80:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -17923,7 +13013,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":114,"inherits":116,"readable-stream/duplex.js":121,"readable-stream/passthrough.js":130,"readable-stream/readable.js":131,"readable-stream/transform.js":132,"readable-stream/writable.js":133}],136:[function(require,module,exports){
+},{"events":59,"inherits":61,"readable-stream/duplex.js":66,"readable-stream/passthrough.js":75,"readable-stream/readable.js":76,"readable-stream/transform.js":77,"readable-stream/writable.js":78}],81:[function(require,module,exports){
 'use strict';
 
 var Buffer = require('safe-buffer').Buffer;
@@ -18196,7 +13286,7 @@ function simpleWrite(buf) {
 function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
-},{"safe-buffer":134}],137:[function(require,module,exports){
+},{"safe-buffer":79}],82:[function(require,module,exports){
 (function (global){
 
 /**
@@ -18267,16 +13357,16 @@ function config (name) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],138:[function(require,module,exports){
-arguments[4][37][0].apply(exports,arguments)
-},{"dup":37}],139:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
+arguments[4][61][0].apply(exports,arguments)
+},{"dup":61}],84:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],140:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -18866,4 +13956,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":139,"_process":120,"inherits":138}]},{},[1]);
+},{"./support/isBuffer":84,"_process":65,"inherits":83}]},{},[1]);
