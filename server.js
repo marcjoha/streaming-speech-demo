@@ -4,8 +4,6 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const ss = require('socket.io-stream');
 const speech = require('@google-cloud/speech');
-const L16 = require('./webaudio-l16-stream.js');
-const inspect = require('inspect-stream')
 
 // Serve web page
 app.use(express.static('public'));
@@ -34,14 +32,10 @@ const recognizeStream = client
   }
 );
 
-// Utility to convert the audio stream into Linear 16 WAVs. Part of IBM's
-// excellent https://github.com/watson-developer-cloud/speech-javascript-sdk
-const l16Stream = new L16({ writableObjectMode: false });
-
 // Wait until client connects and pipe incoming audio stream to the Speech API stream
 io.on('connection', function(socket) {
   ss(socket).on('audio', function(stream) {
-    stream.pipe(l16Stream).pipe(inspect()).pipe(recognizeStream);
+    stream.pipe(recognizeStream);
   });
 });
 
