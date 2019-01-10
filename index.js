@@ -5,7 +5,7 @@ var MicrophoneStream = require('microphone-stream');
 var L16 = require('./webaudio-l16-stream.js');
 
 // set up socket to stream audio through and get results from
-var socket = io.connect('http://' + document.domain + ':' + location.port + '/');
+var socket = io();
 var socketStream = ss.createStream({ objectMode: true });
 ss(socket).emit('audio', socketStream);
 
@@ -32,6 +32,5 @@ document.getElementById('start-button').onclick = function () {
 
 socket.on('update-transcript', function (transcript) {
   console.log(transcript.data);
-  console.log('test');
   document.getElementById('transcript').innerHTML = transcript.data;
 });
