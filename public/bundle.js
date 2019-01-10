@@ -1,43 +1,18 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-/* GAMLA GREJOR
-
-var io = require('socket.io-client');
-var ss = require('socket.io-stream');
-
-var getUserMedia = require('get-user-media-promise');
-var MicrophoneStream = require('microphone-stream');
-
-// set up socket to stream audio through
-var socket = io.connect('http://' + document.domain + ':' + location.port + '/');
-var socketStream = ss.createStream({ objectMode: false });
-ss(socket).emit('audio', socketStream);
-
-var micStream = new MicrophoneStream({ objectMode: false });
-
-// grab mic input
-getUserMedia({ video: false, audio: true }).then(function (audioStream) {
-  micStream.setStream(audioStream);
-}).catch(function (error) {
-  console.log(error);
-});
-
-// pipe to server
-micStream.pipe(socketStream);
-
-*/
-
 var io = require('socket.io-client');
 var ss = require('socket.io-stream');
 var getUserMedia = require('get-user-media-promise');
 var MicrophoneStream = require('microphone-stream');
+var L16 = require('./webaudio-l16-stream.js');
 
-// set up socket to stream audio through
+// set up socket to stream audio through and get results from
 var socket = io.connect('http://' + document.domain + ':' + location.port + '/');
-var socketStream = ss.createStream();
+var socketStream = ss.createStream({ objectMode: true });
 ss(socket).emit('audio', socketStream);
 
+// mic streaming
 document.getElementById('start-button').onclick = function () {
-  var micStream = new MicrophoneStream();
+  var micStream = new MicrophoneStream({ objectMode: true });
 
   // grab mic input
   getUserMedia({ video: false, audio: true }).then(function (stream) {
@@ -47,19 +22,21 @@ document.getElementById('start-button').onclick = function () {
   });
 
   // pipe to server
-  micStream.pipe(socketStream);
-
-  // It also emits a format event with various details (frequency, channels, etc)
-  micStream.on('format', function (format) {
-    console.log(format);
-  });
+  var l16Stream = new L16({ writableObjectMode: true });
+  micStream.pipe(l16Stream).pipe(socketStream);
 
   // Stop when ready
   document.getElementById('stop-button').onclick = function () {
     micStream.stop();
   };
 }
-},{"get-user-media-promise":25,"microphone-stream":30,"socket.io-client":34,"socket.io-stream":43}],2:[function(require,module,exports){
+
+socket.on('update-transcript', function (transcript) {
+  console.log(transcript.data);
+  console.log('test');
+  document.getElementById('transcript').innerHTML = transcript.data;
+});
+},{"./webaudio-l16-stream.js":57,"get-user-media-promise":27,"microphone-stream":32,"socket.io-client":36,"socket.io-stream":45}],2:[function(require,module,exports){
 module.exports = after
 
 function after(count, callback, err_cb) {
@@ -451,7 +428,177 @@ function bufferFrom (value, encodingOrOffset, length) {
 module.exports = bufferFrom
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":57}],8:[function(require,module,exports){
+},{"buffer":60}],8:[function(require,module,exports){
+(function (Buffer){
+var clone = (function() {
+'use strict';
+
+/**
+ * Clones (copies) an Object using deep copying.
+ *
+ * This function supports circular references by default, but if you are certain
+ * there are no circular references in your object, you can save some CPU time
+ * by calling clone(obj, false).
+ *
+ * Caution: if `circular` is false and `parent` contains circular references,
+ * your program may enter an infinite loop and crash.
+ *
+ * @param `parent` - the object to be cloned
+ * @param `circular` - set to true if the object to be cloned may contain
+ *    circular references. (optional - true by default)
+ * @param `depth` - set to a number if the object is only to be cloned to
+ *    a particular depth. (optional - defaults to Infinity)
+ * @param `prototype` - sets the prototype to be used when cloning an object.
+ *    (optional - defaults to parent prototype).
+*/
+function clone(parent, circular, depth, prototype) {
+  var filter;
+  if (typeof circular === 'object') {
+    depth = circular.depth;
+    prototype = circular.prototype;
+    filter = circular.filter;
+    circular = circular.circular
+  }
+  // maintain two arrays for circular references, where corresponding parents
+  // and children have the same index
+  var allParents = [];
+  var allChildren = [];
+
+  var useBuffer = typeof Buffer != 'undefined';
+
+  if (typeof circular == 'undefined')
+    circular = true;
+
+  if (typeof depth == 'undefined')
+    depth = Infinity;
+
+  // recurse this function so we don't reset allParents and allChildren
+  function _clone(parent, depth) {
+    // cloning null always returns null
+    if (parent === null)
+      return null;
+
+    if (depth == 0)
+      return parent;
+
+    var child;
+    var proto;
+    if (typeof parent != 'object') {
+      return parent;
+    }
+
+    if (clone.__isArray(parent)) {
+      child = [];
+    } else if (clone.__isRegExp(parent)) {
+      child = new RegExp(parent.source, __getRegExpFlags(parent));
+      if (parent.lastIndex) child.lastIndex = parent.lastIndex;
+    } else if (clone.__isDate(parent)) {
+      child = new Date(parent.getTime());
+    } else if (useBuffer && Buffer.isBuffer(parent)) {
+      if (Buffer.allocUnsafe) {
+        // Node.js >= 4.5.0
+        child = Buffer.allocUnsafe(parent.length);
+      } else {
+        // Older Node.js versions
+        child = new Buffer(parent.length);
+      }
+      parent.copy(child);
+      return child;
+    } else {
+      if (typeof prototype == 'undefined') {
+        proto = Object.getPrototypeOf(parent);
+        child = Object.create(proto);
+      }
+      else {
+        child = Object.create(prototype);
+        proto = prototype;
+      }
+    }
+
+    if (circular) {
+      var index = allParents.indexOf(parent);
+
+      if (index != -1) {
+        return allChildren[index];
+      }
+      allParents.push(parent);
+      allChildren.push(child);
+    }
+
+    for (var i in parent) {
+      var attrs;
+      if (proto) {
+        attrs = Object.getOwnPropertyDescriptor(proto, i);
+      }
+
+      if (attrs && attrs.set == null) {
+        continue;
+      }
+      child[i] = _clone(parent[i], depth - 1);
+    }
+
+    return child;
+  }
+
+  return _clone(parent, depth);
+}
+
+/**
+ * Simple flat clone using prototype, accepts only objects, usefull for property
+ * override on FLAT configuration object (no nested props).
+ *
+ * USE WITH CAUTION! This may not behave as you wish if you do not know how this
+ * works.
+ */
+clone.clonePrototype = function clonePrototype(parent) {
+  if (parent === null)
+    return null;
+
+  var c = function () {};
+  c.prototype = parent;
+  return new c();
+};
+
+// private utility functions
+
+function __objToStr(o) {
+  return Object.prototype.toString.call(o);
+};
+clone.__objToStr = __objToStr;
+
+function __isDate(o) {
+  return typeof o === 'object' && __objToStr(o) === '[object Date]';
+};
+clone.__isDate = __isDate;
+
+function __isArray(o) {
+  return typeof o === 'object' && __objToStr(o) === '[object Array]';
+};
+clone.__isArray = __isArray;
+
+function __isRegExp(o) {
+  return typeof o === 'object' && __objToStr(o) === '[object RegExp]';
+};
+clone.__isRegExp = __isRegExp;
+
+function __getRegExpFlags(re) {
+  var flags = '';
+  if (re.global) flags += 'g';
+  if (re.ignoreCase) flags += 'i';
+  if (re.multiline) flags += 'm';
+  return flags;
+};
+clone.__getRegExpFlags = __getRegExpFlags;
+
+return clone;
+})();
+
+if (typeof module === 'object' && module.exports) {
+  module.exports = clone;
+}
+
+}).call(this,require("buffer").Buffer)
+},{"buffer":60}],9:[function(require,module,exports){
 /**
  * Slice reference.
  */
@@ -476,7 +623,7 @@ module.exports = function(obj, fn){
   }
 };
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -641,7 +788,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 
 module.exports = function(a, b){
   var fn = function(){};
@@ -649,7 +796,7 @@ module.exports = function(a, b){
   a.prototype = new fn;
   a.prototype.constructor = a;
 };
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 (function (process){
 /**
  * This is the web browser implementation of `debug()`.
@@ -848,7 +995,7 @@ function localstorage() {
 }
 
 }).call(this,require('_process'))
-},{"./debug":12,"_process":65}],12:[function(require,module,exports){
+},{"./debug":13,"_process":68}],13:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -1075,7 +1222,21 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":31}],13:[function(require,module,exports){
+},{"ms":33}],14:[function(require,module,exports){
+var clone = require('clone');
+
+module.exports = function(options, defaults) {
+  options = options || {};
+
+  Object.keys(defaults).forEach(function(key) {
+    if (typeof options[key] === 'undefined') {
+      options[key] = clone(defaults[key]);
+    }
+  });
+
+  return options;
+};
+},{"clone":8}],15:[function(require,module,exports){
 
 module.exports = require('./socket');
 
@@ -1087,7 +1248,7 @@ module.exports = require('./socket');
  */
 module.exports.parser = require('engine.io-parser');
 
-},{"./socket":14,"engine.io-parser":22}],14:[function(require,module,exports){
+},{"./socket":16,"engine.io-parser":24}],16:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -1835,7 +1996,7 @@ Socket.prototype.filterUpgrades = function (upgrades) {
   return filteredUpgrades;
 };
 
-},{"./transport":15,"./transports/index":16,"component-emitter":9,"debug":11,"engine.io-parser":22,"indexof":29,"parseqs":32,"parseuri":33}],15:[function(require,module,exports){
+},{"./transport":17,"./transports/index":18,"component-emitter":10,"debug":12,"engine.io-parser":24,"indexof":31,"parseqs":34,"parseuri":35}],17:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -1997,7 +2158,7 @@ Transport.prototype.onClose = function () {
   this.emit('close');
 };
 
-},{"component-emitter":9,"engine.io-parser":22}],16:[function(require,module,exports){
+},{"component-emitter":10,"engine.io-parser":24}],18:[function(require,module,exports){
 /**
  * Module dependencies
  */
@@ -2052,7 +2213,7 @@ function polling (opts) {
   }
 }
 
-},{"./polling-jsonp":17,"./polling-xhr":18,"./websocket":20,"xmlhttprequest-ssl":21}],17:[function(require,module,exports){
+},{"./polling-jsonp":19,"./polling-xhr":20,"./websocket":22,"xmlhttprequest-ssl":23}],19:[function(require,module,exports){
 (function (global){
 /**
  * Module requirements.
@@ -2295,7 +2456,7 @@ JSONPPolling.prototype.doWrite = function (data, fn) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":19,"component-inherit":10}],18:[function(require,module,exports){
+},{"./polling":21,"component-inherit":11}],20:[function(require,module,exports){
 /* global attachEvent */
 
 /**
@@ -2712,7 +2873,7 @@ function unloadHandler () {
   }
 }
 
-},{"./polling":19,"component-emitter":9,"component-inherit":10,"debug":11,"xmlhttprequest-ssl":21}],19:[function(require,module,exports){
+},{"./polling":21,"component-emitter":10,"component-inherit":11,"debug":12,"xmlhttprequest-ssl":23}],21:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -2959,7 +3120,7 @@ Polling.prototype.uri = function () {
   return schema + '://' + (ipv6 ? '[' + this.hostname + ']' : this.hostname) + port + this.path + query;
 };
 
-},{"../transport":15,"component-inherit":10,"debug":11,"engine.io-parser":22,"parseqs":32,"xmlhttprequest-ssl":21,"yeast":54}],20:[function(require,module,exports){
+},{"../transport":17,"component-inherit":11,"debug":12,"engine.io-parser":24,"parseqs":34,"xmlhttprequest-ssl":23,"yeast":56}],22:[function(require,module,exports){
 (function (Buffer){
 /**
  * Module dependencies.
@@ -3247,7 +3408,7 @@ WS.prototype.check = function () {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"../transport":15,"buffer":57,"component-inherit":10,"debug":11,"engine.io-parser":22,"parseqs":32,"ws":56,"yeast":54}],21:[function(require,module,exports){
+},{"../transport":17,"buffer":60,"component-inherit":11,"debug":12,"engine.io-parser":24,"parseqs":34,"ws":59,"yeast":56}],23:[function(require,module,exports){
 // browser shim for xmlhttprequest module
 
 var hasCORS = require('has-cors');
@@ -3286,7 +3447,7 @@ module.exports = function (opts) {
   }
 };
 
-},{"has-cors":28}],22:[function(require,module,exports){
+},{"has-cors":30}],24:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -3893,7 +4054,7 @@ exports.decodePayloadAsBinary = function (data, binaryType, callback) {
   });
 };
 
-},{"./keys":23,"./utf8":24,"after":2,"arraybuffer.slice":3,"base64-arraybuffer":5,"blob":6,"has-binary2":26}],23:[function(require,module,exports){
+},{"./keys":25,"./utf8":26,"after":2,"arraybuffer.slice":3,"base64-arraybuffer":5,"blob":6,"has-binary2":28}],25:[function(require,module,exports){
 
 /**
  * Gets the keys for an object.
@@ -3914,7 +4075,7 @@ module.exports = Object.keys || function keys (obj){
   return arr;
 };
 
-},{}],24:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 /*! https://mths.be/utf8js v2.1.2 by @mathias */
 
 var stringFromCharCode = String.fromCharCode;
@@ -4126,7 +4287,7 @@ module.exports = {
 	decode: utf8decode
 };
 
-},{}],25:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 // loosely based on example code at https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
 (function (root) {
   'use strict';
@@ -4237,7 +4398,7 @@ module.exports = {
   }
 }(this));
 
-},{}],26:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 (function (Buffer){
 /* global Blob File */
 
@@ -4305,14 +4466,14 @@ function hasBinary (obj) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":57,"isarray":27}],27:[function(require,module,exports){
+},{"buffer":60,"isarray":29}],29:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],28:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -4331,7 +4492,7 @@ try {
   module.exports = false;
 }
 
-},{}],29:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -4342,7 +4503,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],30:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 (function (process){
 'use strict';
 var Readable = require('stream').Readable;
@@ -4488,7 +4649,7 @@ MicrophoneStream.toRaw = function toFloat32(chunk) {
 module.exports = MicrophoneStream;
 
 }).call(this,require('_process'))
-},{"_process":65,"buffer-from":7,"stream":81,"util":85}],31:[function(require,module,exports){
+},{"_process":68,"buffer-from":7,"stream":84,"util":88}],33:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -4642,7 +4803,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],32:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 /**
  * Compiles a querystring
  * Returns string representation of the object
@@ -4681,7 +4842,7 @@ exports.decode = function(qs){
   return qry;
 };
 
-},{}],33:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 /**
  * Parses an URI
  *
@@ -4722,7 +4883,7 @@ module.exports = function parseuri(str) {
     return uri;
 };
 
-},{}],34:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -4818,7 +4979,7 @@ exports.connect = lookup;
 exports.Manager = require('./manager');
 exports.Socket = require('./socket');
 
-},{"./manager":35,"./socket":37,"./url":38,"debug":11,"socket.io-parser":40}],35:[function(require,module,exports){
+},{"./manager":37,"./socket":39,"./url":40,"debug":12,"socket.io-parser":42}],37:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -5393,7 +5554,7 @@ Manager.prototype.onreconnect = function () {
   this.emitAll('reconnect', attempt);
 };
 
-},{"./on":36,"./socket":37,"backo2":4,"component-bind":8,"component-emitter":9,"debug":11,"engine.io-client":13,"indexof":29,"socket.io-parser":40}],36:[function(require,module,exports){
+},{"./on":38,"./socket":39,"backo2":4,"component-bind":9,"component-emitter":10,"debug":12,"engine.io-client":15,"indexof":31,"socket.io-parser":42}],38:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -5419,7 +5580,7 @@ function on (obj, ev, fn) {
   };
 }
 
-},{}],37:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -5859,7 +6020,7 @@ Socket.prototype.binary = function (binary) {
   return this;
 };
 
-},{"./on":36,"component-bind":8,"component-emitter":9,"debug":11,"has-binary2":26,"parseqs":32,"socket.io-parser":40,"to-array":53}],38:[function(require,module,exports){
+},{"./on":38,"component-bind":9,"component-emitter":10,"debug":12,"has-binary2":28,"parseqs":34,"socket.io-parser":42,"to-array":55}],40:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -5936,7 +6097,7 @@ function url (uri, loc) {
   return obj;
 }
 
-},{"debug":11,"parseuri":33}],39:[function(require,module,exports){
+},{"debug":12,"parseuri":35}],41:[function(require,module,exports){
 /*global Blob,File*/
 
 /**
@@ -6079,7 +6240,7 @@ exports.removeBlobs = function(data, callback) {
   }
 };
 
-},{"./is-buffer":41,"isarray":42}],40:[function(require,module,exports){
+},{"./is-buffer":43,"isarray":44}],42:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -6496,7 +6657,7 @@ function error(msg) {
   };
 }
 
-},{"./binary":39,"./is-buffer":41,"component-emitter":9,"debug":11,"isarray":42}],41:[function(require,module,exports){
+},{"./binary":41,"./is-buffer":43,"component-emitter":10,"debug":12,"isarray":44}],43:[function(require,module,exports){
 (function (Buffer){
 
 module.exports = isBuf;
@@ -6520,14 +6681,14 @@ function isBuf(obj) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":57}],42:[function(require,module,exports){
-arguments[4][27][0].apply(exports,arguments)
-},{"dup":27}],43:[function(require,module,exports){
+},{"buffer":60}],44:[function(require,module,exports){
+arguments[4][29][0].apply(exports,arguments)
+},{"dup":29}],45:[function(require,module,exports){
 
 module.exports = require('./lib');
 
 
-},{"./lib":45}],44:[function(require,module,exports){
+},{"./lib":47}],46:[function(require,module,exports){
 (function (Buffer){
 var util = require('util');
 var Readable = require('stream').Readable;
@@ -6598,7 +6759,7 @@ BlobReadStream.prototype._onerror = function(e) {
 
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":57,"component-bind":8,"stream":81,"util":85}],45:[function(require,module,exports){
+},{"buffer":60,"component-bind":9,"stream":84,"util":88}],47:[function(require,module,exports){
 (function (Buffer){
 var Socket = require('./socket');
 var IOStream = require('./iostream');
@@ -6679,7 +6840,7 @@ exports.createBlobReadStream = function(blob, options) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./blob-read-stream":44,"./iostream":46,"./socket":48,"buffer":57}],46:[function(require,module,exports){
+},{"./blob-read-stream":46,"./iostream":48,"./socket":50,"buffer":60}],48:[function(require,module,exports){
 var util = require('util');
 var Duplex = require('stream').Duplex;
 var bind = require('component-bind');
@@ -6946,7 +7107,7 @@ IOStream.prototype._onerror = function(err) {
   this.destroy();
 };
 
-},{"./uuid":49,"component-bind":8,"debug":50,"stream":81,"util":85}],47:[function(require,module,exports){
+},{"./uuid":51,"component-bind":9,"debug":52,"stream":84,"util":88}],49:[function(require,module,exports){
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var IOStream = require('./iostream');
@@ -7053,7 +7214,7 @@ Decoder.prototype.decodeObject = function(obj) {
   return v;
 }
 
-},{"./iostream":46,"events":59,"util":85}],48:[function(require,module,exports){
+},{"./iostream":48,"events":62,"util":88}],50:[function(require,module,exports){
 (function (global,Buffer){
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
@@ -7344,7 +7505,7 @@ Socket.prototype.cleanup = function(id) {
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"./iostream":46,"./parser":47,"buffer":57,"component-bind":8,"debug":50,"events":59,"util":85}],49:[function(require,module,exports){
+},{"./iostream":48,"./parser":49,"buffer":60,"component-bind":9,"debug":52,"events":62,"util":88}],51:[function(require,module,exports){
 // UUID function from https://gist.github.com/jed/982883
 // More lightweight than node-uuid
 function b(
@@ -7371,7 +7532,7 @@ function b(
 
 module.exports = b;
 
-},{}],50:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -7541,7 +7702,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":51}],51:[function(require,module,exports){
+},{"./debug":53}],53:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -7740,7 +7901,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":52}],52:[function(require,module,exports){
+},{"ms":54}],54:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -7867,7 +8028,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],53:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 module.exports = toArray
 
 function toArray(list, index) {
@@ -7882,7 +8043,7 @@ function toArray(list, index) {
     return array
 }
 
-},{}],54:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 'use strict';
 
 var alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'.split('')
@@ -7952,7 +8113,218 @@ yeast.encode = encode;
 yeast.decode = decode;
 module.exports = yeast;
 
-},{}],55:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
+(function (process){
+'use strict';
+var Transform = require('stream').Transform;
+var util = require('util');
+var defaults = require('defaults');
+// some versions of the buffer browser lib don't support Buffer.from (such as the one included by the current version of express-browserify)
+var bufferFrom = require('buffer-from');
+
+var TARGET_SAMPLE_RATE = 16000;
+/**
+ * Transforms Buffers or AudioBuffers into a binary stream of l16 (raw wav) audio, downsampling in the process.
+ *
+ * The watson speech-to-text service works on 16kHz and internally downsamples audio received at higher samplerates.
+ * WebAudio is usually 44.1kHz or 48kHz, so downsampling here reduces bandwidth usage by ~2/3.
+ *
+ * Format event + stream can be combined with https://www.npmjs.com/package/wav to generate a wav file with a proper header
+ *
+ * Todo: support multi-channel audio (for use with <audio>/<video> elements) - will require interleaving audio channels
+ *
+ * @param {Object} options
+ * @constructor
+ */
+function WebAudioL16Stream(options) {
+  options = this.options = defaults(options, {
+    sourceSampleRate: 48000,
+    downsample: true
+  });
+
+  Transform.call(this, options);
+
+  this.bufferUnusedSamples = [];
+
+  if (options.objectMode || options.writableObjectMode) {
+    this._transform = this.handleFirstAudioBuffer;
+  } else {
+    this._transform = this.transformBuffer;
+    process.nextTick(this.emitFormat.bind(this));
+  }
+}
+util.inherits(WebAudioL16Stream, Transform);
+
+WebAudioL16Stream.prototype.emitFormat = function emitFormat() {
+  this.emit('format', {
+    channels: 1,
+    bitDepth: 16,
+    sampleRate: this.options.downsample ? TARGET_SAMPLE_RATE : this.options.sourceSampleRate,
+    signed: true,
+    float: false
+  });
+};
+
+/**
+ * Downsamples WebAudio to 16 kHz.
+ *
+ * Browsers can downsample WebAudio natively with OfflineAudioContext's but it was designed for non-streaming use and
+ * requires a new context for each AudioBuffer. Firefox can handle this, but chrome (v47) crashes after a few minutes.
+ * So, we'll do it in JS for now.
+ *
+ * This really belongs in it's own stream, but there's no way to create new AudioBuffer instances from JS, so its
+ * fairly coupled to the wav conversion code.
+ *
+ * @param  {AudioBuffer} bufferNewSamples Microphone/MediaElement audio chunk
+ * @return {Float32Array} 'audio/l16' chunk
+ */
+WebAudioL16Stream.prototype.downsample = function downsample(bufferNewSamples) {
+  var buffer = null;
+  var newSamples = bufferNewSamples.length;
+  var unusedSamples = this.bufferUnusedSamples.length;
+  var i;
+  var offset;
+
+  if (unusedSamples > 0) {
+    buffer = new Float32Array(unusedSamples + newSamples);
+    for (i = 0; i < unusedSamples; ++i) {
+      buffer[i] = this.bufferUnusedSamples[i];
+    }
+    for (i = 0; i < newSamples; ++i) {
+      buffer[unusedSamples + i] = bufferNewSamples[i];
+    }
+  } else {
+    buffer = bufferNewSamples;
+  }
+
+  // Downsampling and low-pass filter:
+  // Input audio is typically 44.1kHz or 48kHz, this downsamples it to 16kHz.
+  // It uses a FIR (finite impulse response) Filter to remove (or, at least attinuate)
+  // audio frequencies > ~8kHz because sampled audio cannot accurately represent
+  // frequiencies greater than half of the sample rate.
+  // (Human voice tops out at < 4kHz, so nothing important is lost for transcription.)
+  // See http://dsp.stackexchange.com/a/37475/26392 for a good explination of this code.
+  var filter = [
+    -0.037935,
+    -0.00089024,
+    0.040173,
+    0.019989,
+    0.0047792,
+    -0.058675,
+    -0.056487,
+    -0.0040653,
+    0.14527,
+    0.26927,
+    0.33913,
+    0.26927,
+    0.14527,
+    -0.0040653,
+    -0.056487,
+    -0.058675,
+    0.0047792,
+    0.019989,
+    0.040173,
+    -0.00089024,
+    -0.037935
+  ];
+  var samplingRateRatio = this.options.sourceSampleRate / TARGET_SAMPLE_RATE;
+  var nOutputSamples = Math.floor((buffer.length - filter.length) / samplingRateRatio) + 1;
+  var outputBuffer = new Float32Array(nOutputSamples);
+
+  for (i = 0; i + filter.length - 1 < buffer.length; i++) {
+    offset = Math.round(samplingRateRatio * i);
+    var sample = 0;
+    for (var j = 0; j < filter.length; ++j) {
+      sample += buffer[offset + j] * filter[j];
+    }
+    outputBuffer[i] = sample;
+  }
+
+  var indexSampleAfterLastUsed = Math.round(samplingRateRatio * i);
+  var remaining = buffer.length - indexSampleAfterLastUsed;
+  if (remaining > 0) {
+    this.bufferUnusedSamples = new Float32Array(remaining);
+    for (i = 0; i < remaining; ++i) {
+      this.bufferUnusedSamples[i] = buffer[indexSampleAfterLastUsed + i];
+    }
+  } else {
+    this.bufferUnusedSamples = new Float32Array(0);
+  }
+
+  return outputBuffer;
+};
+
+/**
+ * Accepts a Float32Array of audio data and converts it to a Buffer of l16 audio data (raw wav)
+ *
+ * Explanation for the math: The raw values captured from the Web Audio API are
+ * in 32-bit Floating Point, between -1 and 1 (per the specification).
+ * The values for 16-bit PCM range between -32768 and +32767 (16-bit signed integer).
+ * Filter & combine samples to reduce frequency, then multiply to by 0x7FFF (32767) to convert.
+ * Store in little endian.
+ *
+ * @param {Float32Array} input
+ * @return {Buffer}
+ */
+WebAudioL16Stream.prototype.floatTo16BitPCM = function(input) {
+  var output = new DataView(new ArrayBuffer(input.length * 2)); // length is in bytes (8-bit), so *2 to get 16-bit length
+  for (var i = 0; i < input.length; i++) {
+    var multiplier = input[i] < 0 ? 0x8000 : 0x7fff; // 16-bit signed range is -32768 to 32767
+    output.setInt16(i * 2, (input[i] * multiplier) | 0, true); // index, value ("| 0" = convert to 32-bit int, round towards 0), littleEndian.
+  }
+  return bufferFrom(output.buffer);
+};
+
+/**
+ * Does some one-time setup to grab sampleRate and emit format, then sets _transform to the actual audio buffer handler and calls it.
+ * @param {AudioBuffer} audioBuffer
+ * @param {String} encoding
+ * @param {Function} next
+ */
+WebAudioL16Stream.prototype.handleFirstAudioBuffer = function handleFirstAudioBuffer(audioBuffer, encoding, next) {
+  this.options.sourceSampleRate = audioBuffer.sampleRate;
+  this.emitFormat();
+  this._transform = this.transformAudioBuffer;
+  this._transform(audioBuffer, encoding, next);
+};
+
+/**
+ * Accepts an AudioBuffer (for objectMode), then downsamples to 16000 and converts to a 16-bit pcm
+ *
+ * @param {AudioBuffer} audioBuffer
+ * @param {String} encoding
+ * @param {Function} next
+ */
+WebAudioL16Stream.prototype.transformAudioBuffer = function(audioBuffer, encoding, next) {
+  var source = audioBuffer.getChannelData(0);
+  if (this.options.downsample) {
+    source = this.downsample(source);
+  }
+  this.push(this.floatTo16BitPCM(source));
+  next();
+};
+
+/**
+ * Accepts a Buffer (for binary mode), then downsamples to 16000 and converts to a 16-bit pcm
+ *
+ * @param {Buffer} nodebuffer
+ * @param {String} encoding
+ * @param {Function} next
+ */
+WebAudioL16Stream.prototype.transformBuffer = function(nodebuffer, encoding, next) {
+  var source = new Float32Array(nodebuffer.buffer);
+  if (this.options.downsample) {
+    source = this.downsample(source);
+  }
+  this.push(this.floatTo16BitPCM(source));
+  next();
+};
+// new Float32Array(nodebuffer.buffer)
+
+module.exports = WebAudioL16Stream;
+
+}).call(this,require('_process'))
+},{"_process":68,"buffer-from":7,"defaults":14,"stream":84,"util":88}],58:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -8105,9 +8477,9 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],56:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 
-},{}],57:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -9886,7 +10258,7 @@ function numberIsNaN (obj) {
   return obj !== obj // eslint-disable-line no-self-compare
 }
 
-},{"base64-js":55,"ieee754":60}],58:[function(require,module,exports){
+},{"base64-js":58,"ieee754":63}],61:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -9997,7 +10369,7 @@ function objectToString(o) {
 }
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-},{"../../is-buffer/index.js":62}],59:[function(require,module,exports){
+},{"../../is-buffer/index.js":65}],62:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -10522,7 +10894,7 @@ function functionBindPolyfill(context) {
   };
 }
 
-},{}],60:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
@@ -10608,7 +10980,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],61:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -10633,7 +11005,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],62:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -10656,9 +11028,9 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],63:[function(require,module,exports){
-arguments[4][27][0].apply(exports,arguments)
-},{"dup":27}],64:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
+arguments[4][29][0].apply(exports,arguments)
+},{"dup":29}],67:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -10706,7 +11078,7 @@ function nextTick(fn, arg1, arg2, arg3) {
 
 
 }).call(this,require('_process'))
-},{"_process":65}],65:[function(require,module,exports){
+},{"_process":68}],68:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -10892,10 +11264,10 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],66:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 module.exports = require('./lib/_stream_duplex.js');
 
-},{"./lib/_stream_duplex.js":67}],67:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":70}],70:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -11027,7 +11399,7 @@ Duplex.prototype._destroy = function (err, cb) {
 
   pna.nextTick(cb, err);
 };
-},{"./_stream_readable":69,"./_stream_writable":71,"core-util-is":58,"inherits":61,"process-nextick-args":64}],68:[function(require,module,exports){
+},{"./_stream_readable":72,"./_stream_writable":74,"core-util-is":61,"inherits":64,"process-nextick-args":67}],71:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -11075,7 +11447,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":70,"core-util-is":58,"inherits":61}],69:[function(require,module,exports){
+},{"./_stream_transform":73,"core-util-is":61,"inherits":64}],72:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -12097,7 +12469,7 @@ function indexOf(xs, x) {
   return -1;
 }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":67,"./internal/streams/BufferList":72,"./internal/streams/destroy":73,"./internal/streams/stream":74,"_process":65,"core-util-is":58,"events":59,"inherits":61,"isarray":63,"process-nextick-args":64,"safe-buffer":80,"string_decoder/":75,"util":56}],70:[function(require,module,exports){
+},{"./_stream_duplex":70,"./internal/streams/BufferList":75,"./internal/streams/destroy":76,"./internal/streams/stream":77,"_process":68,"core-util-is":61,"events":62,"inherits":64,"isarray":66,"process-nextick-args":67,"safe-buffer":83,"string_decoder/":78,"util":59}],73:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -12312,7 +12684,7 @@ function done(stream, er, data) {
 
   return stream.push(null);
 }
-},{"./_stream_duplex":67,"core-util-is":58,"inherits":61}],71:[function(require,module,exports){
+},{"./_stream_duplex":70,"core-util-is":61,"inherits":64}],74:[function(require,module,exports){
 (function (process,global,setImmediate){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -13002,7 +13374,7 @@ Writable.prototype._destroy = function (err, cb) {
   cb(err);
 };
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("timers").setImmediate)
-},{"./_stream_duplex":67,"./internal/streams/destroy":73,"./internal/streams/stream":74,"_process":65,"core-util-is":58,"inherits":61,"process-nextick-args":64,"safe-buffer":80,"timers":82,"util-deprecate":83}],72:[function(require,module,exports){
+},{"./_stream_duplex":70,"./internal/streams/destroy":76,"./internal/streams/stream":77,"_process":68,"core-util-is":61,"inherits":64,"process-nextick-args":67,"safe-buffer":83,"timers":85,"util-deprecate":86}],75:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -13082,7 +13454,7 @@ if (util && util.inspect && util.inspect.custom) {
     return this.constructor.name + ' ' + obj;
   };
 }
-},{"safe-buffer":80,"util":56}],73:[function(require,module,exports){
+},{"safe-buffer":83,"util":59}],76:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -13157,10 +13529,10 @@ module.exports = {
   destroy: destroy,
   undestroy: undestroy
 };
-},{"process-nextick-args":64}],74:[function(require,module,exports){
+},{"process-nextick-args":67}],77:[function(require,module,exports){
 module.exports = require('events').EventEmitter;
 
-},{"events":59}],75:[function(require,module,exports){
+},{"events":62}],78:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -13457,10 +13829,10 @@ function simpleWrite(buf) {
 function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
-},{"safe-buffer":80}],76:[function(require,module,exports){
+},{"safe-buffer":83}],79:[function(require,module,exports){
 module.exports = require('./readable').PassThrough
 
-},{"./readable":77}],77:[function(require,module,exports){
+},{"./readable":80}],80:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = exports;
 exports.Readable = exports;
@@ -13469,13 +13841,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":67,"./lib/_stream_passthrough.js":68,"./lib/_stream_readable.js":69,"./lib/_stream_transform.js":70,"./lib/_stream_writable.js":71}],78:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":70,"./lib/_stream_passthrough.js":71,"./lib/_stream_readable.js":72,"./lib/_stream_transform.js":73,"./lib/_stream_writable.js":74}],81:[function(require,module,exports){
 module.exports = require('./readable').Transform
 
-},{"./readable":77}],79:[function(require,module,exports){
+},{"./readable":80}],82:[function(require,module,exports){
 module.exports = require('./lib/_stream_writable.js');
 
-},{"./lib/_stream_writable.js":71}],80:[function(require,module,exports){
+},{"./lib/_stream_writable.js":74}],83:[function(require,module,exports){
 /* eslint-disable node/no-deprecated-api */
 var buffer = require('buffer')
 var Buffer = buffer.Buffer
@@ -13539,7 +13911,7 @@ SafeBuffer.allocUnsafeSlow = function (size) {
   return buffer.SlowBuffer(size)
 }
 
-},{"buffer":57}],81:[function(require,module,exports){
+},{"buffer":60}],84:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -13668,7 +14040,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":59,"inherits":61,"readable-stream/duplex.js":66,"readable-stream/passthrough.js":76,"readable-stream/readable.js":77,"readable-stream/transform.js":78,"readable-stream/writable.js":79}],82:[function(require,module,exports){
+},{"events":62,"inherits":64,"readable-stream/duplex.js":69,"readable-stream/passthrough.js":79,"readable-stream/readable.js":80,"readable-stream/transform.js":81,"readable-stream/writable.js":82}],85:[function(require,module,exports){
 (function (setImmediate,clearImmediate){
 var nextTick = require('process/browser.js').nextTick;
 var apply = Function.prototype.apply;
@@ -13747,7 +14119,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
   delete immediateIds[id];
 };
 }).call(this,require("timers").setImmediate,require("timers").clearImmediate)
-},{"process/browser.js":65,"timers":82}],83:[function(require,module,exports){
+},{"process/browser.js":68,"timers":85}],86:[function(require,module,exports){
 (function (global){
 
 /**
@@ -13818,14 +14190,14 @@ function config (name) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],84:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],85:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -14415,4 +14787,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":84,"_process":65,"inherits":61}]},{},[1]);
+},{"./support/isBuffer":87,"_process":68,"inherits":64}]},{},[1]);

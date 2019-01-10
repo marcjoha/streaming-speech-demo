@@ -2,14 +2,16 @@ var io = require('socket.io-client');
 var ss = require('socket.io-stream');
 var getUserMedia = require('get-user-media-promise');
 var MicrophoneStream = require('microphone-stream');
+var L16 = require('./webaudio-l16-stream.js');
 
-// set up socket to stream audio through
+// set up socket to stream audio through and get results from
 var socket = io.connect('http://' + document.domain + ':' + location.port + '/');
-var socketStream = ss.createStream();
+var socketStream = ss.createStream({ objectMode: true });
 ss(socket).emit('audio', socketStream);
 
+// mic streaming
 document.getElementById('start-button').onclick = function () {
-  var micStream = new MicrophoneStream();
+  var micStream = new MicrophoneStream({ objectMode: true });
 
   // grab mic input
   getUserMedia({ video: false, audio: true }).then(function (stream) {
@@ -19,15 +21,17 @@ document.getElementById('start-button').onclick = function () {
   });
 
   // pipe to server
-  micStream.pipe(socketStream);
-
-  // It also emits a format event with various details (frequency, channels, etc)
-  micStream.on('format', function (format) {
-    console.log(format);
-  });
+  var l16Stream = new L16({ writableObjectMode: true });
+  micStream.pipe(l16Stream).pipe(socketStream);
 
   // Stop when ready
   document.getElementById('stop-button').onclick = function () {
     micStream.stop();
   };
 }
+
+socket.on('update-transcript', function (transcript) {
+  console.log(transcript.data);
+  console.log('test');
+  document.getElementById('transcript').innerHTML = transcript.data;
+});
