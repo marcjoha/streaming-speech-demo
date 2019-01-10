@@ -5,7 +5,7 @@ var MicrophoneStream = require('microphone-stream');
 var L16 = require('./webaudio-l16-stream.js');
 
 // Set up socket to stream audio through and get transcripts from
-var socket = io();
+var socket = io({ transports: ['websocket'] });
 var socketStream = ss.createStream({ objectMode: true });
 ss(socket).emit('audio', socketStream);
 
