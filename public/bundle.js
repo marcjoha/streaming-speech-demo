@@ -5,34 +5,31 @@ var getUserMedia = require('get-user-media-promise');
 var MicrophoneStream = require('microphone-stream');
 var L16 = require('./webaudio-l16-stream.js');
 
-// set up socket to stream audio through and get results from
+// Set up socket to stream audio through and get transcripts from
 var socket = io();
 var socketStream = ss.createStream({ objectMode: true });
 ss(socket).emit('audio', socketStream);
 
-// mic streaming
-document.getElementById('start-button').onclick = function () {
+// Wait until start button is clicked
+document.getElementById('start-button').onclick = () => {
+  // Grab mic stream
   var micStream = new MicrophoneStream({ objectMode: true });
-
-  // grab mic input
-  getUserMedia({ video: false, audio: true }).then(function (stream) {
+  getUserMedia({ video: false, audio: true }).then(stream => {
     micStream.setStream(stream);
-  }).catch(function (error) {
-    console.log(error);
   });
 
-  // pipe to server
+  // Downsample from Float32 to Linear16 and pipe through socket
   var l16Stream = new L16({ writableObjectMode: true });
   micStream.pipe(l16Stream).pipe(socketStream);
 
-  // Stop when ready
-  document.getElementById('stop-button').onclick = function () {
+  // Continue until stop button is clicked (or API times out)
+  document.getElementById('stop-button').onclick = () => {
     micStream.stop();
   };
 }
 
-socket.on('update-transcript', function (transcript) {
-  console.log(transcript.data);
+// Subscribe to transcripts from the server
+socket.on('update-transcript', transcript => {
   document.getElementById('transcript').innerHTML = transcript.data;
 });
 },{"./webaudio-l16-stream.js":57,"get-user-media-promise":27,"microphone-stream":32,"socket.io-client":36,"socket.io-stream":45}],2:[function(require,module,exports){
