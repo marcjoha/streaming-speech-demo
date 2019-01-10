@@ -5,10 +5,14 @@ const io = require('socket.io')(http);
 const ss = require('socket.io-stream');
 const speech = require('@google-cloud/speech');
 
-// Serve web page
+// Set up web serving, on App Engine and locally
 app.use(express.static('public'));
 app.get('/', function (req, res) {
   res.sendFile(__dirname + '/index.html');
+});
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => {
+  console.log(`Server listening on http://localhost:${PORT}`);
 });
 
 // Build a stream to the Speech API
@@ -35,8 +39,4 @@ io.on('connection', function (socket) {
   ss(socket).on('audio', function (stream) {
     stream.pipe(recognizeStream);
   });
-});
-
-http.listen(3000, function () {
-  console.log('listening on http://localhost:3000');
 });
