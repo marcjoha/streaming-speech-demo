@@ -29,7 +29,6 @@ const recognizeStream = client
   .on('error', console.error)
   .on('data', data => {
     var transcript = data.results[0].alternatives[0].transcript;
-    console.log(transcript);
     io.sockets.emit('update-transcript', { data: transcript });
   }
   );
