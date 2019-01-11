@@ -9,25 +9,39 @@ var socket = io({ transports: ['websocket'] });
 var socketStream = ss.createStream({ objectMode: true });
 ss(socket).emit('audio', socketStream);
 
+// Grab mic stream
+var micStream = new MicrophoneStream({ objectMode: true });
+
 // Wait until start button is clicked
 document.getElementById('start-button').onclick = () => {
-  // Grab mic stream
-  var micStream = new MicrophoneStream({ objectMode: true });
+
+  // todo: make start-button inactive
+
+  // Off we go!
   getUserMedia({ video: false, audio: true }).then(stream => {
     micStream.setStream(stream);
   });
 
-  // Downsample from Float32 to Linear16 and pipe through socket
+  // Downsample audio from Float32 to Linear16 and pipe through socket
   var l16Stream = new L16({ writableObjectMode: true });
   micStream.pipe(l16Stream).pipe(socketStream);
 
-  // Continue until stop button is clicked (or API times out)
+  // Continue until stop button is clicked
   document.getElementById('stop-button').onclick = () => {
     micStream.stop();
+    // todo: make stop-button inactive
   };
 }
 
+// Subscribe to server errors, and abort if needed
+// todo
+
 // Subscribe to transcripts from the server
+socket.on('update-transcript', transcript => {
+  document.getElementById('transcript').innerHTML = transcript.data;
+});
+
+// Display transcripts as they come in from the Speech API
 socket.on('update-transcript', transcript => {
   document.getElementById('transcript').innerHTML = transcript.data;
 });
