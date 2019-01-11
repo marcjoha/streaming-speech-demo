@@ -18,6 +18,6 @@
     "browserify": "latest"
   },
   "scripts": {
-    "prepare": "browserify index.js -o public/bundle.js"
+    "prepare": "browserify index.js -o index-compiled.js"
   }
 }

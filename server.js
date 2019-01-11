@@ -1,16 +1,15 @@
-const express = require('express')
-const app = require('express')()
+const app = require('express')();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const ss = require('socket.io-stream');
 const speech = require('@google-cloud/speech');
 
-// Set up web serving, on GAE (Flex) or on localhost:3000
-app.use(express.static('public'));
+// If process.env.PORT is set, we're on App Engine
+server.listen(process.env.PORT || 3000);
+
 app.get('/', function (req, res) {
   res.sendFile(__dirname + '/index.html');
 });
-server.listen(process.env.PORT || 3000);
 
 // Wait until client connects,
 // pipe incoming audio to the Speech API,
