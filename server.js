@@ -5,7 +5,7 @@ const io = require('socket.io')(server);
 const ss = require('socket.io-stream');
 const speech = require('@google-cloud/speech');
 
-// Set up web serving, on GAE or on localhost:3000
+// Set up web serving, on GAE (Flex) or on localhost:3000
 app.use(express.static('public'));
 app.get('/', function (req, res) {
   res.sendFile(__dirname + '/index.html');
