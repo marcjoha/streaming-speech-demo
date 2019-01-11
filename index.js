@@ -9,17 +9,19 @@ var socket = io({ transports: ['websocket'] });
 var socketStream = ss.createStream({ objectMode: true });
 ss(socket).emit('audio', socketStream);
 
-// Grab mic stream
-var micStream = new MicrophoneStream({ objectMode: true });
-
 // Wait until start button is clicked
 document.getElementById('start-button').onclick = () => {
 
   // todo: make start-button inactive
 
+  // Grab mic stream
+  var micStream = new MicrophoneStream({ objectMode: true });
+
   // Off we go!
   getUserMedia({ video: false, audio: true }).then(stream => {
     micStream.setStream(stream);
+  }).catch(function(error) {
+    console.log(error);
   });
 
   // Downsample audio from Float32 to Linear16 and pipe through socket

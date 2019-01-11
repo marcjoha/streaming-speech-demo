@@ -5,9 +5,11 @@ const io = require('socket.io')(server);
 const ss = require('socket.io-stream');
 const speech = require('@google-cloud/speech');
 
-// If process.env.PORT is set, we're on App Engine
+// Listen on designated port, and in case of PAAS, trust thy proxy
 server.listen(process.env.PORT || 3000);
+app.enable("trust proxy");
 
+// Wire up root and static folder
 app.use(express.static('public'));
 app.get('/', function (req, res) {
   res.sendFile(__dirname + '/index.html');
