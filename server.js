@@ -1,4 +1,5 @@
-const app = require('express')();
+const express = require('express');
+const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const ss = require('socket.io-stream');
@@ -7,6 +8,7 @@ const speech = require('@google-cloud/speech');
 // If process.env.PORT is set, we're on App Engine
 server.listen(process.env.PORT || 3000);
 
+app.use(express.static('public'));
 app.get('/', function (req, res) {
   res.sendFile(__dirname + '/index.html');
 });
