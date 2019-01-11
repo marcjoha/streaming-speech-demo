@@ -3,7 +3,10 @@ Demo web app using the Google Cloud Speech API in streaming mode.
 
 You need a billable GCP project, with the Speech API enabled.
 
-If deployed locally, you also need a service account key wired up in Application Default Credentials:
+Credits to [nfriedly](https://github.com/nfriedly) for [webaudio-l16-stream.js](https://github.com/watson-developer-cloud/speech-javascript-sdk/blob/438d657d98ae0cf00f7461ea86b0d3aa81f76e70/speech-to-text/webaudio-l16-stream.js) which is used to down-sample the audio.
+
+## Deploy locally
+You need a service account key wired up in Application Default Credentials:
 
 ```bash
 export PROJID="bla bla"
@@ -17,3 +20,7 @@ Once all set, do:
 1. `npm install`
 2. `npm start`
 3. `open http://localhost:3000`
+
+## Deploy on Google App Engine Flexible Environment
+
+TBC.
