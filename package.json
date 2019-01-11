@@ -1,17 +1,9 @@
 {
   "name": "streaming-speech-demo",
-  "version": "1.0.0",
   "description": "Demo web app using the Google Cloud Speech API in streaming mode",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/marcjoha/streaming-speech-demo.git"
-  },
-  "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "marcjoha",
-  "license": "ISC",
+  "version": "1.0.0",
+  "main": "server.js",
   "dependencies": {
     "@google-cloud/speech": "^2.1.2",
     "express": "^4.16.4",
