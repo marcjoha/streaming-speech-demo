@@ -13,5 +13,11 @@
     "socket.io-stream": "^0.9.1",
     "buffer-from": "^1.1.1",
     "defaults": "^1.0.3"
+  },
+  "devDependencies": {
+    "browserify": "latest"
+  },
+  "scripts": {
+    "prepare": "browserify index.js -o public/bundle.js"
   }
 }

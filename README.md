@@ -3,7 +3,7 @@ Demo web app using the Google Cloud Speech API in streaming mode.
 
 You need a billable GCP project, with the Speech API enabled.
 
-If deployed locally, you also need a service account key wired up in Application Default Credentials.
+If deployed locally, you also need a service account key wired up in Application Default Credentials:
 
 ```bash
 export PROJID="bla bla"
@@ -15,6 +15,5 @@ export GOOGLE_APPLICATION_CREDENTIALS=svc-acc-key.json
 Once all set, do:
 
 1. `npm install`
-2. `browserify index.js -o public/bundle.js`
-3. `npm start`
-4. `open http://localhost:3000`
+2. `npm start`
+3. `open http://localhost:3000`
