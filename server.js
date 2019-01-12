@@ -1,5 +1,4 @@
-const express = require('express');
-const app = express();
+const app = require('express')();
 const server = require('http').Server(app);
 const secure = require('express-force-https');
 const io = require('socket.io')(server);
