@@ -1,8 +1,8 @@
-var io = require('socket.io-client');
-var ss = require('socket.io-stream');
-var getUserMedia = require('get-user-media-promise');
-var MicrophoneStream = require('microphone-stream');
-var L16 = require('./webaudio-l16-stream.js');
+const io = require('socket.io-client');
+const ss = require('socket.io-stream');
+const getUserMedia = require('get-user-media-promise');
+const MicrophoneStream = require('microphone-stream');
+const L16 = require('./webaudio-l16-stream.js');
 
 // Set up socket to stream audio through and get transcripts from
 // N.B. specifically disable long-polling, it wouldn't work well anyway
@@ -12,8 +12,6 @@ ss(socket).emit('audio', socketStream);
 
 // Wait until start button is clicked
 document.getElementById('start-button').onclick = () => {
-
-  // todo: make start-button inactive
 
   // Grab mic stream
   var micStream = new MicrophoneStream({ objectMode: true });
@@ -26,8 +24,8 @@ document.getElementById('start-button').onclick = () => {
   });
 
   // Downsample audio from Float32 to Linear16 and pipe through socket
-  var l16Stream = new L16({ writableObjectMode: true });
-  micStream.pipe(l16Stream).pipe(socketStream);
+  var transformStream = new L16({ writableObjectMode: true });
+  micStream.pipe(transformStream).pipe(socketStream);
 
   // Continue until stop button is clicked
   document.getElementById('stop-button').onclick = () => {
@@ -36,8 +34,7 @@ document.getElementById('start-button').onclick = () => {
   };
 }
 
-// Subscribe to server errors, and abort if needed
-// todo
+// Todo: Subscribe to server errors, and abort if needed
 
 // Subscribe to transcripts from the server
 socket.on('update-transcript', transcript => {
