@@ -1,19 +1,22 @@
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
+const secure = require('express-force-https');
 const io = require('socket.io')(server);
 const ss = require('socket.io-stream');
 const speech = require('@google-cloud/speech');
 
-// Listen on designated port, and in case of PAAS, trust thy proxy
-server.listen(process.env.PORT || 3000);
-app.enable("trust proxy");
+// Enforce HTTPs, won't be able to use mic otherwise
+app.use(secure);
 
-// Wire up root and static folder
+// Set up serving
 app.use(express.static('public'));
 app.get('/', function (req, res) {
   res.sendFile(__dirname + '/index.html');
 });
+
+// Start web server
+server.listen(process.env.PORT || 3000);
 
 // Wait until client connects,
 // pipe incoming audio to the Speech API,
