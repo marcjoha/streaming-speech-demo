@@ -1,4 +1,4 @@
-const io = require('socket.io-client');
+const io = require('socket.io');
 const ss = require('socket.io-stream');
 const getUserMedia = require('get-user-media-promise');
 const MicrophoneStream = require('microphone-stream');
