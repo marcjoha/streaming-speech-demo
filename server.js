@@ -10,9 +10,11 @@ const speech = require('@google-cloud/speech');
 app.use(secure);
 
 // Set up serving
-app.use(express.static('public'));
-app.get('/', function (req, res) {
+app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
+});
+app.get('/index.js', (req, res) => {
+  res.sendFile(__dirname + '/index-compiled.js');
 });
 
 // Start web server

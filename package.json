@@ -24,6 +24,6 @@
     "browserify": "latest"
   },
   "scripts": {
-    "prepare": "browserify index.js -o public/index-compiled.js"
+    "prepare": "browserify index.js -o index-compiled.js"
   }
 }
