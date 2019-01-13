@@ -23,16 +23,19 @@ server.listen(process.env.PORT || 3000);
 // pipe incoming audio to the Speech API,
 // and emit transcripts to the UI as they come in
 io.on('connection', socket => {
+
+  var recognizeStream = new speech.SpeechClient().streamingRecognize({
+    config: {
+      encoding: 'LINEAR16',
+      languageCode: 'en-US',
+      sampleRateHertz: 16000
+    },
+    interimResults: true,
+  }).on('data', data => {
+    socket.emit('update-transcript', { data: data.results[0].alternatives[0].transcript });
+  });
+
   ss(socket).on('audio', stream => {
-    stream.pipe(new speech.SpeechClient().streamingRecognize({
-      config: {
-        encoding: 'LINEAR16',
-        languageCode: 'en-US',
-        sampleRateHertz: 16000
-      },
-      interimResults: true,
-    }).on('data', data => {
-      socket.emit('update-transcript', { data: data.results[0].alternatives[0].transcript });
-    }));
+    stream.pipe(recognizeStream);
   });
 });
