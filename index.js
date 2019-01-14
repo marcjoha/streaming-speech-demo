@@ -5,7 +5,7 @@ const MicrophoneStream = require('microphone-stream');
 const L16 = require('./webaudio-l16-stream.js');
 
 // Set up socket to stream audio through and get transcripts from
-// N.B. specifically disable long-polling, it wouldn't work well anyway
+// N.B. disable long-polling, it wouldn't work well anyway
 var socket = io({ transports: ['websocket'] });
 var socketStream = ss.createStream({ objectMode: true });
 ss(socket).emit('audio', socketStream);
@@ -30,18 +30,10 @@ document.getElementById('start-button').onclick = () => {
   // Continue until stop button is clicked
   document.getElementById('stop-button').onclick = () => {
     micStream.stop();
-    // todo: make stop-button inactive
   };
 }
 
-// Todo: Subscribe to server errors, and abort if needed
-
-// Subscribe to transcripts from the server
-socket.on('update-transcript', transcript => {
-  document.getElementById('transcript').innerHTML = transcript.data;
-});
-
-// Display transcripts as they come in from the Speech API
+// Subscribe to and display audio transcripts
 socket.on('update-transcript', transcript => {
   document.getElementById('transcript').innerHTML = transcript.data;
 });
