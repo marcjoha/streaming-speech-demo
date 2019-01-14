@@ -34,7 +34,9 @@ const speechConfiguration = {
 io.on('connection', socket => {
   ss(socket).on('audio', stream => {
     stream.pipe(speechClient.streamingRecognize(speechConfiguration).on('data', data => {
-      socket.emit('update-transcript', { data: data.results[0].alternatives[0].transcript });
+      socket.emit('transcript', { data: data.results[0].alternatives[0].transcript });
+    }).on('error', error => {
+      socket.emit('error', { data: error });
     }));
   });
 });

@@ -19,7 +19,7 @@ document.getElementById('start-button').onclick = () => {
   // Off we go!
   getUserMedia({ video: false, audio: true }).then(stream => {
     micStream.setStream(stream);
-  }).catch(function(error) {
+  }).catch(error => {
     console.log(error);
   });
 
@@ -34,6 +34,11 @@ document.getElementById('start-button').onclick = () => {
 }
 
 // Subscribe to and display audio transcripts
-socket.on('update-transcript', transcript => {
+socket.on('transcript', transcript => {
   document.getElementById('transcript').innerHTML = transcript.data;
+});
+
+// Subscribe to and display audio transcripts
+socket.on('error', error => {
+  document.getElementById('error').innerHTML = error.data;
 });
