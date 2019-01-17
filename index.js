@@ -11,7 +11,7 @@ var micStream;
 // Wait until start button is clicked
 document.getElementById('start-button').onclick = () => {
   // Wire up streamable socket and mic
-  socket = io();
+  socket = io({ transports: ['websocket'] });
   socketStream = ss.createStream({ objectMode: true });
   micStream = new MicrophoneStream({ objectMode: true });
 
