@@ -19,7 +19,7 @@ document.getElementById('record').onclick = () => {
     // Wires user audio directly into a node stream
     micStream = new MicrophoneStream();
 
-    // Streamable websocket with long-polling disabled
+    // Streamable websocket, disable fallback to long-polling
     socket = io({ transports: ['websocket'] }).on('disconnect', _ => {
       shutdown();
     });
@@ -35,7 +35,7 @@ document.getElementById('record').onclick = () => {
 
       // Subscribe to and display audio transcripts
       socket.on('transcript', transcript => {
-        document.getElementById('transcript').prepend(transcript.data, document.createElement("br"));
+        document.getElementById('transcript').append(transcript.data, document.createElement("br"));
       });
     });
 
