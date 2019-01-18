@@ -8,34 +8,46 @@ var socket;
 var socketStream;
 var micStream;
 
-// Wait until start button is clicked
-document.getElementById('start-button').onclick = () => {
-  // Wires user audio directly into a node stream
-  micStream = new MicrophoneStream();
+var buttonClicks = 0;
 
-  // Streamable websocket with long-polling disabled
-  socket = io({ transports: ['websocket'] });
-  socketStream = ss.createStream();
+// Toogle recording audio on button click
+document.getElementById('record').onclick = () => {
+  if(buttonClicks++ % 2 == 0) {
+    // User started recording
+    document.getElementById('record').innerHTML = "Stop recording";
+    document.getElementById('record').classList.add("btn-danger");
 
-  // Off we go!
-  getUserMedia({ video: false, audio: true }, (_, stream) => {
-    micStream.setStream(stream);
+    // Wires user audio directly into a node stream
+    micStream = new MicrophoneStream();
 
-    // Downsample audio and pipe through socket
-    micStream.pipe(new L16Stream()).pipe(socketStream);
-    ss(socket).emit('audio', socketStream);
+    // Streamable websocket with long-polling disabled
+    socket = io({ transports: ['websocket'] });
+    socketStream = ss.createStream();
 
-    // Subscribe to and display audio transcripts
-    socket.on('transcript', transcript => {
-      document.getElementById('transcript').innerHTML = transcript.data;
+    // Off we go!
+    getUserMedia({ video: false, audio: true }, (_, stream) => {
+      micStream.setStream(stream);
+
+      // Downsample audio and pipe through socket
+      micStream.pipe(new L16Stream()).pipe(socketStream);
+      ss(socket).emit('audio', socketStream);
+
+      // Subscribe to and display audio transcripts
+      socket.on('transcript', transcript => {
+        document.getElementById('transcript').prepend(transcript.data, document.createElement("br"));
+      });
     });
-  });
-}
 
-// Turn things down gracefully when stop button is clicked
-document.getElementById('stop-button').onclick = () => {
-  document.getElementById('transcript').innerHTML = '';
-  if (micStream) micStream.stop();
-  if (socketStream) socketStream.end();
-  if (socket) socket.disconnect();
+  } else {
+    // User stopped recording
+    document.getElementById('record').innerHTML = "Record audio";
+    document.getElementById('record').classList.remove("btn-danger");
+
+    // Gracefully shut down streams and sockets
+    if (micStream) micStream.stop();
+    if (socketStream) socketStream.end();
+    if (socket) socket.disconnect();
+
+  }
+
 };
