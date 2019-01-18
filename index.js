@@ -12,15 +12,15 @@ var micStream;
 document.getElementById('start-button').onclick = () => {
   // Wire up streamable socket and mic
   socket = io({ transports: ['websocket'] });
-  socketStream = ss.createStream({ objectMode: true });
-  micStream = new MicrophoneStream({ objectMode: true });
+  socketStream = ss.createStream();
+  micStream = new MicrophoneStream();
 
   // Off we go!
   getUserMedia({ video: false, audio: true }, (_, stream) => {
     micStream.setStream(stream);
 
     // Downsample audio and pipe through socket
-    micStream.pipe(new L16Stream(({ writableObjectMode: true }))).pipe(socketStream);
+    micStream.pipe(new L16Stream().pipe(socketStream);
     ss(socket).emit('audio', socketStream);
 
     // Subscribe to and display audio transcripts

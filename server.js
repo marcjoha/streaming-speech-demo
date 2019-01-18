@@ -24,13 +24,13 @@ io.on('connection', socket => {
   ss(socket).on('audio', audioStream => {
 
     // Initialize a stream to the Speech API
-    var recognizeStream = (new speech.SpeechClient()).streamingRecognize({
+    var recognizeStream = new speech.SpeechClient().streamingRecognize({
       config: {
         encoding: 'LINEAR16',
         languageCode: 'en-US',
         sampleRateHertz: 16000
       },
-      interimResults: true,
+      interimResults: false,
     })
 
     // Pipe audio from client to the API, and feed results back
