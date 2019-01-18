@@ -10,17 +10,19 @@ var micStream;
 
 // Wait until start button is clicked
 document.getElementById('start-button').onclick = () => {
-  // Wire up streamable socket and mic
+  // Wires user audio directly into a node stream
+  micStream = new MicrophoneStream();
+
+  // Streamable websocket with long-polling disabled
   socket = io({ transports: ['websocket'] });
   socketStream = ss.createStream();
-  micStream = new MicrophoneStream();
 
   // Off we go!
   getUserMedia({ video: false, audio: true }, (_, stream) => {
     micStream.setStream(stream);
 
     // Downsample audio and pipe through socket
-    micStream.pipe(new L16Stream().pipe(socketStream);
+    micStream.pipe(new L16Stream()).pipe(socketStream);
     ss(socket).emit('audio', socketStream);
 
     // Subscribe to and display audio transcripts
