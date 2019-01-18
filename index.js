@@ -20,7 +20,9 @@ document.getElementById('record').onclick = () => {
     micStream = new MicrophoneStream();
 
     // Streamable websocket with long-polling disabled
-    socket = io({ transports: ['websocket'] });
+    socket = io({ transports: ['websocket'] }).on('disconnect', _ => {
+      shutdown();
+    });
     socketStream = ss.createStream();
 
     // Off we go!
@@ -39,13 +41,17 @@ document.getElementById('record').onclick = () => {
 
   } else {
     // User stopped recording
+    shutdown();
+  }
+
+  // Helper function to reset button, and stop all client-side streams gracefully
+  function shutdown() {
     document.getElementById('record').innerHTML = "🎤 Start recording";
 
     // Gracefully shut down streams and sockets
     if (micStream) micStream.stop();
     if (socketStream) socketStream.end();
     if (socket) socket.disconnect();
-
   }
 
 };

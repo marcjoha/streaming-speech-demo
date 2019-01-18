@@ -38,6 +38,7 @@ io.on('connection', socket => {
       socket.emit('transcript', { data: data.results[0].alternatives[0].transcript });
     })).on('error', error => {
       console.log(error);
+      socket.disconnect();
     });
 
   });
