@@ -14,8 +14,7 @@ var buttonClicks = 0;
 document.getElementById('record').onclick = () => {
   if(buttonClicks++ % 2 == 0) {
     // User started recording
-    document.getElementById('record').innerHTML = "Stop recording";
-    document.getElementById('record').classList.add("btn-danger");
+    document.getElementById('record').innerHTML = "🛑 Stop recording";
 
     // Wires user audio directly into a node stream
     micStream = new MicrophoneStream();
@@ -40,8 +39,7 @@ document.getElementById('record').onclick = () => {
 
   } else {
     // User stopped recording
-    document.getElementById('record').innerHTML = "Record audio";
-    document.getElementById('record').classList.remove("btn-danger");
+    document.getElementById('record').innerHTML = "🎤 Start recording";
 
     // Gracefully shut down streams and sockets
     if (micStream) micStream.stop();

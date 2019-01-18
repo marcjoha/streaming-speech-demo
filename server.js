@@ -30,7 +30,7 @@ io.on('connection', socket => {
         languageCode: 'en-US',
         sampleRateHertz: 16000
       },
-      interimResults: false,
+      interimResults: false
     })
 
     // Pipe audio from client to the API, and feed results back
