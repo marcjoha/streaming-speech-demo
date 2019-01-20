@@ -4,6 +4,8 @@ const secure = require('express-force-https');
 const io = require('socket.io')(server);
 const ss = require('socket.io-stream');
 const speech = require('@google-cloud/speech');
+const latestAudioFile = require('tempy').file({extension: 'wav'});
+const wav = require('wav');
 
 // Enforce HTTPs, won't be able to use mic otherwise
 app.use(secure);
@@ -14,6 +16,9 @@ app.get('/', (req, res) => {
 });
 app.get('/index.js', (req, res) => {
   res.sendFile(__dirname + '/index-compiled.js');
+});
+app.get('/latest', (req, res) => {
+  res.sendFile(latestAudioFile);
 });
 
 // Start web server
@@ -40,6 +45,13 @@ io.on('connection', socket => {
       console.log(error);
       socket.disconnect();
     });
+
+    // Keep the latest audio for debugging
+    audioStream.pipe(new wav.FileWriter(latestAudioFile, {
+      channels: 1,
+      sampleRate: 44100,
+      bitDepth: 16
+    }));
 
   });
 });
