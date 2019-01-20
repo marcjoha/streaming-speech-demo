@@ -28,14 +28,14 @@ io.on('connection', socket => {
       config: {
         encoding: 'LINEAR16',
         languageCode: 'en-US',
-        sampleRateHertz: 16000
+        sampleRateHertz: 44100
       },
       interimResults: false
     })
 
     // Pipe audio from client to the API, and feed results back
     audioStream.pipe(recognizeStream.on('data', data => {
-      socket.emit('transcript', { data: data.results[0].alternatives[0].transcript });
+      socket.emit('transcript', data.results[0].alternatives[0].transcript );
     })).on('error', error => {
       console.log(error);
       socket.disconnect();

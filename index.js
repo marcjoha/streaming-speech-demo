@@ -12,7 +12,7 @@ var buttonClicks = 0;
 
 // Toogle recording audio on button click
 document.getElementById('record').onclick = () => {
-  if(buttonClicks++ % 2 == 0) {
+  if (buttonClicks++ % 2 == 0) {
     // User started recording
     document.getElementById('record').innerHTML = "🛑 Stop recording";
 
@@ -29,13 +29,13 @@ document.getElementById('record').onclick = () => {
     getUserMedia({ video: false, audio: true }, (_, stream) => {
       micStream.setStream(stream);
 
-      // Downsample audio and pipe through socket
-      micStream.pipe(new L16Stream()).pipe(socketStream);
+      // Convert from 32 to 16 bits and pipe through socket
+      micStream.pipe(new L16Stream({ downsample: false })).pipe(socketStream);
       ss(socket).emit('audio', socketStream);
 
       // Subscribe to and display audio transcripts
       socket.on('transcript', transcript => {
-        document.getElementById('transcript').append(transcript.data, document.createElement("br"));
+        document.getElementById('transcript').append(transcript, document.createElement("br"));
       });
     });
 
