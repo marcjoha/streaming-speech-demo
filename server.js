@@ -34,15 +34,15 @@ io.on('connection', socket => {
         languageCode: 'en-US',
         sampleRateHertz: sampleRate
       },
-      interimResults: true
-    });
-
-    audioStream.pipe(streamingRecognize).on('data', data => {
+      interimResults: false
+    }).on('data', data => {
       socket.emit('transcript', data.results[0].alternatives[0].transcript);
     }).on('error', error => {
       console.log(error);
       socket.disconnect();
     });
+
+    audioStream.pipe(streamingRecognize);
 
   });
 
