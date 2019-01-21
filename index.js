@@ -4,41 +4,47 @@ const getUserMedia = require('getusermedia');
 const MicrophoneStream = require('microphone-stream');
 const L16Stream = require('./webaudio-l16-stream.js');
 
+const TARGET_SAMPLE_RATE = 16000;
+
 var socket;
-var socketStream;
+var speechStream;
 var micStream;
+var transformStream;
 
 var buttonClicks = 0;
 
 // Toogle recording audio on button click
 document.getElementById('record').onclick = () => {
   if (buttonClicks++ % 2 == 0) {
+
     // User started recording
-    document.getElementById('record').innerHTML = "🛑 Stop recording";
+    document.getElementById('record').innerHTML = '🛑 Stop recording';
 
-    // Set up socket, without fallback to long-polling
+    // Set up socket, without long-polling, and wait for connection
     socket = io({ transports: ['websocket'] }).on('connect', _ => {
-      socketStream = ss.createStream();
 
-      // Wire up the mic, get started once we know sample rate
+      // Prepare duplex socket to stream audio and transcrips through
+      speechStream = ss.createStream({ objectMode: true });
+      ss(socket).emit('speech', speechStream, TARGET_SAMPLE_RATE);
+
+      // Wire up the mic, and wait to learn current sample rate
       micStream = new MicrophoneStream().on('format', format => {
-        getUserMedia({ video: false, audio: true }, (_, stream) => {
-          // Send mic into a stream object
-          micStream.setStream(stream);
 
-          // Send stream object over the socket (also convert to Linear16 and downsample to 16kHz)
-          ss(socket).emit('audio', socketStream, 16000);
-          micStream.pipe(new L16Stream({ sourceSampleRate: format.sampleRate, downsample: true })).pipe(socketStream);
+        // Prepare transform for down-sampling and converting to Linear16
+        // todo: rewrite transform so that TARGET_SAMPLE_RATE is properly exposed
+        transformStream = new L16Stream({ sourceSampleRate: format.sampleRate, downsample: true });
+
+        // With user's blessing, grab mic and get started
+        getUserMedia({ video: false, audio: true }, (_, mediaStream) => {
+          micStream.setStream(mediaStream);
+
+          micStream.pipe(transformStream).pipe(speechStream).on('data', data => {
+            var transcript = data.results[0].alternatives[0].transcript;
+            document.getElementById('transcript').append(transcript, document.createElement('br'));
+          });
         });
+
       });
-
-    }).on('transcript', transcript => {
-      // Display audio transcript as they come in over the socket
-      document.getElementById('transcript').append(transcript, document.createElement("br"));
-
-    }).on('disconnect', _ => {
-      // Lost connection due to server-side error
-      shutdown();
 
     });
 
@@ -47,13 +53,14 @@ document.getElementById('record').onclick = () => {
     shutdown();
   }
 
-  // Helper function to reset button, and stop all client-side streams gracefully
+  // Helper function to reset UI, and stop all client-side streams gracefully
   function shutdown() {
-    document.getElementById('record').innerHTML = "🎤 Start recording";
+    document.getElementById('record').innerHTML = '🎤 Start recording';
+    document.getElementById('transcript').innerHTML = '';
 
     // Gracefully shut down streams and sockets
     if (micStream) micStream.stop();
-    if (socketStream) socketStream.end();
+    if (speechStream) speechStream.end();
     if (socket) socket.disconnect();
   }
 

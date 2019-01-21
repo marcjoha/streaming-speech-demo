@@ -26,23 +26,21 @@ io.on('connection', socket => {
   var client = new speech.SpeechClient();
 
   // Then wait for incoming audio
-  ss(socket).on('audio', (audioStream, sampleRate) => {
+  ss(socket).on('speech', (speechStream, sampleRate) => {
 
-    var streamingRecognize = client.streamingRecognize({
+    var recognizeStream = client.streamingRecognize({
       config: {
         encoding: 'LINEAR16',
         languageCode: 'en-US',
         sampleRateHertz: sampleRate
       },
       interimResults: false
-    }).on('data', data => {
-      socket.emit('transcript', data.results[0].alternatives[0].transcript);
     }).on('error', error => {
       console.log(error);
       socket.disconnect();
     });
 
-    audioStream.pipe(streamingRecognize);
+    speechStream.pipe(recognizeStream).pipe(speechStream);
 
   });
 
