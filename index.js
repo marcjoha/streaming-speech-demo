@@ -38,6 +38,7 @@ document.getElementById('record').onclick = () => {
         getUserMedia({ video: false, audio: true }, (_, mediaStream) => {
           micStream.setStream(mediaStream);
 
+          // Pipe audio through the transform, the API and all the way back...
           micStream.pipe(transformStream).pipe(speechStream).on('data', data => {
             var transcript = data.results[0].alternatives[0].transcript;
             document.getElementById('transcript').append(transcript, document.createElement('br'));
@@ -46,6 +47,9 @@ document.getElementById('record').onclick = () => {
 
       });
 
+    }).on('disconnect', _ => {
+      // Closing connection due to server-side error
+      shutdown();
     });
 
   } else {
