@@ -40,8 +40,7 @@ document.getElementById('record').onclick = () => {
 
           // Pipe audio through the transform, the API and all the way back...
           micStream.pipe(transformStream).pipe(speechStream).on('data', data => {
-            var transcript = data.results[0].alternatives[0].transcript;
-            document.getElementById('transcript').append(transcript, document.createElement('br'));
+            render(data);
           });
         });
 
@@ -66,6 +65,12 @@ document.getElementById('record').onclick = () => {
     if (micStream) micStream.stop();
     if (speechStream) speechStream.end();
     if (socket) socket.disconnect();
+  }
+
+  // Helper function to show audio transcripts
+  function render(data) {
+    var transcript = data.results[0].alternatives[0].transcript;
+    document.getElementById('transcript').append(transcript, document.createElement('br'));
   }
 
 };
