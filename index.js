@@ -6,9 +6,7 @@ const L16Stream = require('./webaudio-l16-stream.js');
 
 var socket;
 var socketStream;
-
 var micStream;
-var sampleRate = 44100;
 
 var buttonClicks = 0;
 
@@ -18,30 +16,27 @@ document.getElementById('record').onclick = () => {
     // User started recording
     document.getElementById('record').innerHTML = "🛑 Stop recording";
 
-    // Wires user audio directly into a node stream
-    micStream = new MicrophoneStream().on('format', format => {
-      sampleRate = format.sampleRate;
-    });
+    // Set up socket, without fallback to long-polling
+    socket = io({ transports: ['websocket'] }).on('connect', _ => {
+      socketStream = ss.createStream();
 
-    // Streamable websocket, disable fallback to long-polling
-    socket = io({ transports: ['websocket'] }).on('disconnect', _ => {
-      shutdown();
-    });
-    socketStream = ss.createStream();
+      // Wire up the mic, get started once we know sample rate
+      micStream = new MicrophoneStream().on('format', format => {
+        getUserMedia({ video: false, audio: true }, (_, stream) => {
+          // Send mic into a stream object
+          micStream.setStream(stream);
 
-    // Off we go!
-    getUserMedia({ video: false, audio: true }, (_, stream) => {
-      micStream.setStream(stream);
-
-      // Convert from 32 to 16 bits and pipe through socket
-      // todo: create a new transform object that only does 32-16 conversion
-      micStream.pipe(new L16Stream({ sourceSampleRate: sampleRate, downsample: false })).pipe(socketStream);
-      ss(socket).emit('audio', socketStream, sampleRate);
-
-      // Subscribe to and display audio transcripts
-      socket.on('transcript', transcript => {
-        document.getElementById('transcript').append(transcript, document.createElement("br"));
+          // And send the stream object over the socket (and convert to Linear16 in the meanwhile)
+          micStream.pipe(new L16Stream({ sourceSampleRate: format.sampleRate, downsample: false })).pipe(socketStream);
+          ss(socket).emit('audio', socketStream, format.sampleRate);
+        });
       });
+
+    }).on('transcript', transcript => {
+      // Display audio transcript as they come in over the socket
+      document.getElementById('transcript').append(transcript, document.createElement("br"));
+    }).on('disconnect', _ => {
+      shutdown();
     });
 
   } else {
