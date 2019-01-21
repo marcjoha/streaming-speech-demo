@@ -3,7 +3,7 @@ This is a demo app of using the Google Cloud Speech API in streaming mode. It's 
 
 The app is running at https://streaming-speech-demo.appspot.com.
 
-Credits to [nfriedly](https://github.com/nfriedly) for [webaudio-l16-stream.js](https://github.com/watson-developer-cloud/speech-javascript-sdk/blob/438d657d98ae0cf00f7461ea86b0d3aa81f76e70/speech-to-text/webaudio-l16-stream.js) which is used to down-sample the audio.
+Credits to [nfriedly](https://github.com/nfriedly) for [webaudio-l16-stream.js](https://github.com/watson-developer-cloud/speech-javascript-sdk/blob/438d657d98ae0cf00f7461ea86b0d3aa81f76e70/speech-to-text/webaudio-l16-stream.js) which is used to down-sample the audio and convert to Linear16 format.
 
 ## Run locally
 You will need a billable GCP project, with the Speech API enabled. Then create a service account, download the key file, and wire up in Application Default Credentials (ADC), e.g. like this:
