@@ -26,17 +26,20 @@ document.getElementById('record').onclick = () => {
           // Send mic into a stream object
           micStream.setStream(stream);
 
-          // And send the stream object over the socket (and convert to Linear16 in the meanwhile)
-          micStream.pipe(new L16Stream({ sourceSampleRate: format.sampleRate, downsample: false })).pipe(socketStream);
-          ss(socket).emit('audio', socketStream, format.sampleRate);
+          // Send stream object over the socket (and convert to Linear16 and downsample to 16kHz)
+          ss(socket).emit('audio', socketStream, 16000);
+          micStream.pipe(new L16Stream({ sourceSampleRate: format.sampleRate, downsample: true })).pipe(socketStream);
         });
       });
 
     }).on('transcript', transcript => {
       // Display audio transcript as they come in over the socket
       document.getElementById('transcript').append(transcript, document.createElement("br"));
+
     }).on('disconnect', _ => {
+      // Lost connection due to server-side error
       shutdown();
+
     });
 
   } else {
