@@ -19,16 +19,12 @@ app.get('/index.js', (req, res) => {
 // Start web server
 server.listen(process.env.PORT || 3000);
 
-// Wait until a client connects
+// Wait for a client to transmit audio
 io.on('connection', socket => {
-
-  // Initalize connection to the Speech API
-  var client = new speech.SpeechClient();
-
-  // Then wait for incoming audio
   ss(socket).on('speech', (speechStream, sampleRate) => {
 
-    var recognizeStream = client.streamingRecognize({
+    // Initialize connection to Speech API
+    var recognizeStream = new speech.SpeechClient().streamingRecognize({
       config: {
         encoding: 'LINEAR16',
         languageCode: 'en-US',
@@ -40,8 +36,8 @@ io.on('connection', socket => {
       socket.disconnect();
     });
 
+    // Stream audio to the API and feed results back to client
     speechStream.pipe(recognizeStream).pipe(speechStream);
 
   });
-
 });
