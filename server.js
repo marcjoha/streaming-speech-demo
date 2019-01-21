@@ -26,14 +26,14 @@ server.listen(process.env.PORT || 3000);
 
 // Wait until a client connects
 io.on('connection', socket => {
-  ss(socket).on('audio', audioStream => {
+  ss(socket).on('audio', (audioStream, sampleRate) => {
 
     // Initialize a stream to the Speech API
     var recognizeStream = new speech.SpeechClient().streamingRecognize({
       config: {
         encoding: 'LINEAR16',
         languageCode: 'en-US',
-        sampleRateHertz: 44100
+        sampleRateHertz: sampleRate
       },
       interimResults: false
     })
@@ -49,7 +49,7 @@ io.on('connection', socket => {
     // Keep the latest audio for debugging
     audioStream.pipe(new wav.FileWriter(latestAudioFile, {
       channels: 1,
-      sampleRate: 44100,
+      sampleRate: sampleRate,
       bitDepth: 16
     }));
 

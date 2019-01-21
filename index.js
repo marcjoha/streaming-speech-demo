@@ -6,7 +6,9 @@ const L16Stream = require('./webaudio-l16-stream.js');
 
 var socket;
 var socketStream;
+
 var micStream;
+var sampleRate = 44100;
 
 var buttonClicks = 0;
 
@@ -17,7 +19,9 @@ document.getElementById('record').onclick = () => {
     document.getElementById('record').innerHTML = "🛑 Stop recording";
 
     // Wires user audio directly into a node stream
-    micStream = new MicrophoneStream();
+    micStream = new MicrophoneStream().on('format', format => {
+      sampleRate = format.sampleRate;
+    });
 
     // Streamable websocket, disable fallback to long-polling
     socket = io({ transports: ['websocket'] }).on('disconnect', _ => {
@@ -30,8 +34,9 @@ document.getElementById('record').onclick = () => {
       micStream.setStream(stream);
 
       // Convert from 32 to 16 bits and pipe through socket
-      micStream.pipe(new L16Stream({ downsample: false })).pipe(socketStream);
-      ss(socket).emit('audio', socketStream);
+      // todo: create a new transform object that only does 32-16 conversion
+      micStream.pipe(new L16Stream({ sourceSampleRate: sampleRate, downsample: false })).pipe(socketStream);
+      ss(socket).emit('audio', socketStream, sampleRate);
 
       // Subscribe to and display audio transcripts
       socket.on('transcript', transcript => {
