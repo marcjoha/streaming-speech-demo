@@ -26,7 +26,7 @@ document.getElementById('record').onclick = () => {
           // Send mic into a stream object
           micStream.setStream(stream);
 
-          // Send stream object over the socket (and convert to Linear16 and downsample to 16kHz)
+          // Send stream object over the socket (also convert to Linear16 and downsample to 16kHz)
           ss(socket).emit('audio', socketStream, 16000);
           micStream.pipe(new L16Stream({ sourceSampleRate: format.sampleRate, downsample: true })).pipe(socketStream);
         });
