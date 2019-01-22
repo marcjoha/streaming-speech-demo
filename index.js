@@ -1,6 +1,8 @@
+'use strict'
+
 const io = require('socket.io-client');
 const ss = require('socket.io-stream');
-const getUserMedia = require('getusermedia');
+const getUserMedia = require('get-user-media-promise');
 const MicrophoneStream = require('microphone-stream');
 const L16Stream = require('./webaudio-l16-stream.js');
 
@@ -35,13 +37,16 @@ document.getElementById('record').onclick = () => {
         transformStream = new L16Stream({ sourceSampleRate: format.sampleRate, downsample: true });
 
         // With user's blessing, grab mic and get started
-        getUserMedia({ video: false, audio: true }, (_, mediaStream) => {
-          micStream.setStream(mediaStream);
+        getUserMedia({ video: false, audio: true }).then(function(stream) {
+          micStream.setStream(stream);
+        }).catch(function(error) {
+          console.log(error);
+          shutdown();
+        });
 
-          // Pipe audio through the transform, the API and all the way back...
-          micStream.pipe(transformStream).pipe(speechStream).on('data', data => {
-            render(data);
-          });
+        // Pipe audio through the transform, the API and all the way back...
+        micStream.pipe(transformStream).pipe(speechStream).on('data', data => {
+          render(data);
         });
 
       });

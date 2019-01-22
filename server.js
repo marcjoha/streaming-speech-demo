@@ -1,3 +1,5 @@
+'use strict'
+
 const app = require('express')();
 const server = require('http').Server(app);
 const secure = require('express-force-https');
