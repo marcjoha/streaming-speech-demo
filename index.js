@@ -61,16 +61,16 @@ document.getElementById('record').onclick = () => {
     shutdown();
   }
 
-  // Helper function to flip button, and stop streams and socket gracefully
+  // Helper function to shut down gracefully
   function shutdown() {
-    document.getElementById('record').innerHTML = '🎤 Start recording';
 
     // Stop listening for audio
     if (micStream) micStream.stop();
 
-    //  Stop stream and socket
+    //  Stop stream,  kill socket and reset UI when finished
     if (speechStream) speechStream.end(_ => {
       socket.disconnect();
+      document.getElementById('record').innerHTML = '🎤 Start recording';
     });
 
   }
