@@ -6,7 +6,7 @@ const getUserMedia = require('get-user-media-promise');
 const MicrophoneStream = require('microphone-stream');
 const L16Stream = require('./webaudio-l16-stream.js');
 
-const TARGET_SAMPLE_RATE = 8000;
+const TARGET_SAMPLE_RATE = 16000;
 
 var socket;
 var speechStream;
