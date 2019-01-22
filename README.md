@@ -1,8 +1,6 @@
 # streaming-speech-demo
 This is a demo app of using the Google Cloud Speech API in streaming mode. It's built in Node.js and streams audio from the user's microphone, over a websocket connection to a backend, that in turn feeds the stream to the Speech API. Transcripts are fed back as they arrive.
 
-The app is running at https://streaming-speech-demo.appspot.com.
-
 Credits to [nfriedly](https://github.com/nfriedly) for [webaudio-l16-stream.js](https://github.com/watson-developer-cloud/speech-javascript-sdk/blob/438d657d98ae0cf00f7461ea86b0d3aa81f76e70/speech-to-text/webaudio-l16-stream.js) which is used to down-sample the audio and convert to Linear16 format.
 
 ## Run locally
