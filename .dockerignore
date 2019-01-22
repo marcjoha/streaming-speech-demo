@@ -1,4 +1,8 @@
+.git
+.gitignore
 node_modules
 npm-debug.log
+.dockerignore
+Dockerfile
 svc-acc-key.json
 index-compiled.js
