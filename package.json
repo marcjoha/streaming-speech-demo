@@ -10,7 +10,7 @@
   },
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/speech": "^2.1.2",
+    "@google-cloud/speech": "^2.2.0",
     "buffer-from": "^1.1.1",
     "defaults": "^1.0.3",
     "express": "^4.16.4",
