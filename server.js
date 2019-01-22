@@ -10,6 +10,15 @@ const speech = require('@google-cloud/speech');
 // Enforce HTTPs, won't be able to use mic otherwise
 app.use(secure);
 
+// https://cloud.google.com/appengine/docs/flexible/nodejs/how-requests-are-handled
+app.use((req, res, next) => {
+  res.header('Content-Type', 'text/event-stream');
+  res.header('Cache-Control', 'no-cache');
+  res.header('Connection', 'keep-alive');
+  res.header('X-Accel-Buffering', 'no');
+  next();
+});
+
 // Set up serving
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
