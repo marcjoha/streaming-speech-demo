@@ -61,15 +61,17 @@ document.getElementById('record').onclick = () => {
     shutdown();
   }
 
-  // Helper function to reset UI, and stop all client-side streams gracefully
+  // Helper function to flip button, and stop streams and socket gracefully
   function shutdown() {
     document.getElementById('record').innerHTML = '🎤 Start recording';
-    document.getElementById('transcript').innerHTML = '';
 
-    // Gracefully shut down streams and sockets
+    // Gracefully stop listening for audio
     if (micStream) micStream.stop();
-    if (speechStream) speechStream.end();
-    if (socket) socket.disconnect();
+
+    // Wait for main stream to finish before closing socket
+    if (speechStream) speechStream.on('finish', _ => {
+      socket.disconnect();
+    });
   }
 
   // Helper function to show audio transcripts
