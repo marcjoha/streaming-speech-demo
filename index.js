@@ -6,7 +6,7 @@ const getUserMedia = require('get-user-media-promise');
 const MicrophoneStream = require('microphone-stream');
 const L16Stream = require('./webaudio-l16-stream.js');
 
-const TARGET_SAMPLE_RATE = 16000;
+const TARGET_SAMPLE_RATE = 8000;
 
 var socket;
 var speechStream;
@@ -37,9 +37,9 @@ document.getElementById('record').onclick = () => {
         transformStream = new L16Stream({ sourceSampleRate: format.sampleRate, downsample: true });
 
         // With user's blessing, grab mic and get started
-        getUserMedia({ video: false, audio: true }).then(function (stream) {
+        getUserMedia({ video: false, audio: true }).then(stream => {
           micStream.setStream(stream);
-        }).catch(function (error) {
+        }).catch(error => {
           console.log(error);
           shutdown();
         });
