@@ -37,9 +37,9 @@ document.getElementById('record').onclick = () => {
         transformStream = new L16Stream({ sourceSampleRate: format.sampleRate, downsample: true });
 
         // With user's blessing, grab mic and get started
-        getUserMedia({ video: false, audio: true }).then(function(stream) {
+        getUserMedia({ video: false, audio: true }).then(function (stream) {
           micStream.setStream(stream);
-        }).catch(function(error) {
+        }).catch(function (error) {
           console.log(error);
           shutdown();
         });
@@ -65,13 +65,14 @@ document.getElementById('record').onclick = () => {
   function shutdown() {
     document.getElementById('record').innerHTML = '🎤 Start recording';
 
-    // Gracefully stop listening for audio
+    // Stop listening for audio
     if (micStream) micStream.stop();
 
-    // Wait for main stream to finish before closing socket
-    if (speechStream) speechStream.on('finish', _ => {
+    //  Stop stream and socket
+    if (speechStream) speechStream.end(_ => {
       socket.disconnect();
     });
+
   }
 
   // Helper function to show audio transcripts
