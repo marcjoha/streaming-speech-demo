@@ -5,7 +5,7 @@ var defaults = require('defaults');
 // some versions of the buffer browser lib don't support Buffer.from (such as the one included by the current version of express-browserify)
 var bufferFrom = require('buffer-from');
 
-var TARGET_SAMPLE_RATE = 16000;
+var TARGET_SAMPLE_RATE = 8000;
 /**
  * Transforms Buffers or AudioBuffers into a binary stream of l16 (raw wav) audio, downsampling in the process.
  *
